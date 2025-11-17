@@ -19,13 +19,13 @@ Phase 1 establishes the foundation for the MealTogether frontend. This includes 
   - No dependencies - foundational work
   - Status: Closed ✅
 
-- [ ] **#1** - Set up API client service layer
+- [x] **#1** - Set up API client service layer
   - Install and configure axios
   - Create base API client with interceptors
   - Implement JWT token management
   - Create API service methods for all endpoints
   - Depends on: #15 (TypeScript types)
-  - Status: Open
+  - Status: Closed ✅
 
 - [ ] **#17** - Add loading states and error handling UI
   - Create LoadingSpinner component
