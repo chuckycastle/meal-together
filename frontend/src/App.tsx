@@ -10,6 +10,7 @@ import { queryClient } from './lib/queryClient';
 import { AppRoutes } from './router';
 import { ErrorBoundary } from './components/ui';
 import { AuthProvider } from './contexts/AuthContext';
+import { FamilyProvider } from './contexts/FamilyContext';
 
 function App() {
   return (
@@ -17,7 +18,9 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <AppRoutes />
+            <FamilyProvider>
+              <AppRoutes />
+            </FamilyProvider>
           </AuthProvider>
         </BrowserRouter>
         <ReactQueryDevtools initialIsOpen={false} />

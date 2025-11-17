@@ -4,11 +4,9 @@
 
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
+import { LoginPage, RegisterPage, DashboardPage } from './pages';
 
 // Placeholder pages - will be implemented in later phases
-const DashboardPage = () => <div>Dashboard Page (TODO)</div>;
 const FamiliesPage = () => <div>Families Page (TODO)</div>;
 const RecipesPage = () => <div>Recipes Page (TODO)</div>;
 const RecipeDetailPage = () => <div>Recipe Detail Page (TODO)</div>;
