@@ -3,7 +3,8 @@
  * Handles all HTTP requests to the backend API
  */
 
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios';
+import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import type {
   User,
   AuthTokens,
@@ -177,8 +178,9 @@ class ApiClient {
     return response.data;
   }
 
-  async register(data: RegisterRequest): Promise<{ message: string; user: User }> {
-    const response = await this.client.post('/api/auth/register', data);
+  async register(data: RegisterRequest): Promise<AuthTokens> {
+    const response = await this.client.post<AuthTokens>('/api/auth/register', data);
+    this.setTokens(response.data.access_token, response.data.refresh_token);
     return response.data;
   }
 

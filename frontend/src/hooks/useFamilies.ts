@@ -6,10 +6,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api';
 import type { CreateFamilyRequest, AddMemberRequest } from '../types';
 
-export const useFamilies = () => {
+export const useFamilies = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ['families'],
     queryFn: () => apiClient.getFamilies(),
+    enabled,
   });
 };
 

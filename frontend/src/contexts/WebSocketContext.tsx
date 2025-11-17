@@ -3,8 +3,10 @@
  * Provides WebSocket connection and methods to components
  */
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { websocketService, WebSocketEventHandler } from '../services/websocket';
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { websocketService } from '../services/websocket';
+import type { WebSocketEventHandler } from '../services/websocket';
 
 interface WebSocketContextValue {
   isConnected: boolean;

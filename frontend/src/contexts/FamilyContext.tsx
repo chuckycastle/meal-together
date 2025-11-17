@@ -3,7 +3,8 @@
  * Manages active family selection and family-related state
  */
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import type { Family } from '../types';
 import { useFamilies } from '../hooks/useFamilies';
@@ -26,7 +27,7 @@ const ACTIVE_FAMILY_KEY = 'active_family_id';
 
 export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const { data: families = [], isLoading, error } = useFamilies();
+  const { data: families = [], isLoading, error } = useFamilies(isAuthenticated);
   const [activeFamily, setActiveFamilyState] = useState<Family | null>(null);
 
   // Load active family from localStorage on mount

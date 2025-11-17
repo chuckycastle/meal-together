@@ -4,17 +4,21 @@
 
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { LoginPage, RegisterPage, DashboardPage } from './pages';
+import {
+  LoginPage,
+  RegisterPage,
+  DashboardPage,
+  RecipeListPage,
+  RecipeDetailPage,
+  RecipeFormPage,
+  ShoppingListPage,
+  TimelineSchedulerPage,
+  CookingSessionPage,
+  FamilyManagementPage,
+  ProfilePage,
+} from './pages';
 
-// Placeholder pages - will be implemented in later phases
-const FamiliesPage = () => <div>Families Page (TODO)</div>;
-const RecipesPage = () => <div>Recipes Page (TODO)</div>;
-const RecipeDetailPage = () => <div>Recipe Detail Page (TODO)</div>;
-const RecipeFormPage = () => <div>Recipe Form Page (TODO)</div>;
-const ShoppingPage = () => <div>Shopping Page (TODO)</div>;
-const TimelinePage = () => <div>Timeline Page (TODO)</div>;
-const CookingModePage = () => <div>Cooking Mode Page (TODO)</div>;
-const ProfilePage = () => <div>Profile Page (TODO)</div>;
+// Placeholder pages
 const NotFoundPage = () => <div>404 - Page Not Found</div>;
 
 export const AppRoutes = () => {
@@ -37,7 +41,7 @@ export const AppRoutes = () => {
         path="/families"
         element={
           <ProtectedRoute>
-            <FamiliesPage />
+            <FamilyManagementPage />
           </ProtectedRoute>
         }
       />
@@ -45,7 +49,7 @@ export const AppRoutes = () => {
         path="/recipes"
         element={
           <ProtectedRoute>
-            <RecipesPage />
+            <RecipeListPage />
           </ProtectedRoute>
         }
       />
@@ -77,7 +81,7 @@ export const AppRoutes = () => {
         path="/shopping"
         element={
           <ProtectedRoute>
-            <ShoppingPage />
+            <ShoppingListPage />
           </ProtectedRoute>
         }
       />
@@ -85,7 +89,7 @@ export const AppRoutes = () => {
         path="/timeline"
         element={
           <ProtectedRoute>
-            <TimelinePage />
+            <TimelineSchedulerPage />
           </ProtectedRoute>
         }
       />
@@ -93,7 +97,7 @@ export const AppRoutes = () => {
         path="/cooking"
         element={
           <ProtectedRoute>
-            <CookingModePage />
+            <CookingSessionPage />
           </ProtectedRoute>
         }
       />

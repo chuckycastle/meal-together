@@ -66,7 +66,7 @@ def create_timeline(family_id):
 @family_member_required
 def start_cooking_session(family_id):
     """Start a cooking session"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data.get('recipe_id'):
@@ -118,7 +118,7 @@ def get_active_sessions(family_id):
     }), 200
 
 
-@bp.route('/<int:session_id>', methods='GET'])
+@bp.route('/<int:session_id>', methods=['GET'])
 @family_member_required
 def get_session(family_id, session_id):
     """Get cooking session details"""

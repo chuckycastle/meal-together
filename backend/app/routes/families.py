@@ -15,7 +15,7 @@ bp = Blueprint('families', __name__, url_prefix='/api/families')
 @jwt_required()
 def create_family():
     """Create a new family"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data.get('name'):
@@ -51,7 +51,7 @@ def create_family():
 @jwt_required()
 def get_families():
     """Get all families for current user"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
 
     # Get all family memberships
     memberships = FamilyMember.query.filter_by(user_id=user_id).all()
@@ -155,7 +155,7 @@ def update_member_role(family_id, member_id):
     if 'role' in data:
         # Only owner can assign owner role
         if data['role'] == 'owner':
-            user_id = get_jwt_identity()
+            user_id = int(get_jwt_identity())
             family = Family.get_by_id(family_id)
             if not family.is_owner(user_id):
                 return jsonify({'error': 'Only owner can assign owner role'}), 403
@@ -198,7 +198,7 @@ def remove_member(family_id, member_id):
 @family_member_required
 def leave_family(family_id):
     """Leave a family"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     family = Family.get_by_id(family_id)
     member = family.get_member(user_id)
 

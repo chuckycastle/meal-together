@@ -14,7 +14,7 @@ bp = Blueprint('recipes', __name__, url_prefix='/api/families/<int:family_id>/re
 @family_member_required
 def create_recipe(family_id):
     """Create a new recipe"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     required_fields = ['name', 'prep_time', 'cook_time']

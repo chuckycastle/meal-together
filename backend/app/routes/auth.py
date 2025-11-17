@@ -38,9 +38,16 @@ def register():
 
     try:
         user.save()
+
+        # Generate tokens for automatic login
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
+
         return jsonify({
             'message': 'User registered successfully',
-            'user': user.to_dict()
+            'user': user.to_dict(),
+            'access_token': access_token,
+            'refresh_token': refresh_token
         }), 201
     except Exception as e:
         db.session.rollback()
@@ -66,8 +73,8 @@ def login():
         return jsonify({'error': 'Account is disabled'}), 403
 
     # Create tokens
-    access_token = create_access_token(identity=user.id)
-    refresh_token = create_refresh_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
+    refresh_token = create_refresh_token(identity=str(user.id))
 
     return jsonify({
         'access_token': access_token,
@@ -92,7 +99,7 @@ def refresh():
 @jwt_required()
 def get_current_user():
     """Get current user profile"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.get_by_id(user_id)
 
     if not user:

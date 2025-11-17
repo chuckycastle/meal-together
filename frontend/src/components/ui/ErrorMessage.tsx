@@ -3,7 +3,7 @@
  * Displays error messages with retry option
  */
 
-import { ApiError } from '../../types';
+import type { ApiError } from '../../types';
 
 interface ErrorMessageProps {
   error?: Error | ApiError | string;

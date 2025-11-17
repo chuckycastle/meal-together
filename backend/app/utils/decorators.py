@@ -19,7 +19,7 @@ def login_required(fn):
 
 def get_current_user():
     """Get current authenticated user"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     return User.get_by_id(user_id)
 
 
@@ -28,7 +28,7 @@ def family_member_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         verify_jwt_in_request()
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         family_id = kwargs.get('family_id')
 
         if not family_id:
@@ -50,7 +50,7 @@ def family_admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         verify_jwt_in_request()
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         family_id = kwargs.get('family_id')
 
         if not family_id:
@@ -72,7 +72,7 @@ def family_owner_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         verify_jwt_in_request()
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         family_id = kwargs.get('family_id')
 
         if not family_id:

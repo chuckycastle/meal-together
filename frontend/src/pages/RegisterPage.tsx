@@ -30,7 +30,9 @@ export const RegisterPage = () => {
     try {
       await registerUser(data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Registration failed. Please try again.';
+      setError(errorMessage);
     }
   };
 
@@ -177,12 +179,12 @@ export const RegisterPage = () => {
                 Confirm password
               </label>
               <input
-                {...register('confirmPassword')}
-                id="confirmPassword"
+                {...register('confirm_password')}
+                id="confirm_password"
                 type={showConfirmPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                  errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                  errors.confirm_password ? 'border-red-300' : 'border-gray-300'
                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                 placeholder="Confirm password"
               />
@@ -227,8 +229,8 @@ export const RegisterPage = () => {
                   </svg>
                 )}
               </button>
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+              {errors.confirm_password && (
+                <p className="mt-1 text-sm text-red-600">{errors.confirm_password.message}</p>
               )}
             </div>
           </div>

@@ -37,7 +37,7 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    socketio.init_app(app, async_mode='eventlet')
+    socketio.init_app(app, async_mode='threading', cors_allowed_origins="*")
 
     # CORS configuration
     frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')

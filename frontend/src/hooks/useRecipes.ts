@@ -4,7 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api';
-import type { Recipe, CreateRecipeRequest } from '../types';
+import type { CreateRecipeRequest } from '../types';
 
 export const useRecipes = (familyId: number | undefined) => {
   return useQuery({

@@ -40,11 +40,13 @@ export interface RegisterRequest {
 // Family & Members
 // ============================================================================
 
-export enum FamilyRole {
-  OWNER = 'owner',
-  ADMIN = 'admin',
-  MEMBER = 'member',
-}
+export const FamilyRole = {
+  OWNER: 'owner',
+  ADMIN: 'admin',
+  MEMBER: 'member',
+} as const;
+
+export type FamilyRole = typeof FamilyRole[keyof typeof FamilyRole];
 
 export interface Family {
   id: number;

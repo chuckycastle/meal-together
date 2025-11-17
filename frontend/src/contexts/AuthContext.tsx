@@ -3,7 +3,8 @@
  * Manages user authentication state and token handling
  */
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
 import type { User, LoginRequest, RegisterRequest } from '../types';
@@ -60,10 +61,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await apiClient.login(credentials);
-      localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-      localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
-      setUser(response.user);
-      navigate('/');
+      if ('access_token' in response && 'refresh_token' in response && typeof response.access_token === 'string' && typeof response.refresh_token === 'string') {
+        localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
+        localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
+        setUser(response.user);
+        navigate('/');
+      }
     } catch (error) {
       setIsLoading(false);
       throw error;
@@ -75,10 +78,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await apiClient.register(userData);
-      localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-      localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
-      setUser(response.user);
-      navigate('/');
+      if ('access_token' in response && 'refresh_token' in response && typeof response.access_token === 'string' && typeof response.refresh_token === 'string') {
+        localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
+        localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
+        setUser(response.user);
+        navigate('/');
+      }
     } catch (error) {
       setIsLoading(false);
       throw error;

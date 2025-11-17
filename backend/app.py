@@ -13,10 +13,10 @@ if __name__ == '__main__':
 
     # Run with SocketIO
     port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_ENV') != 'production'
     socketio.run(
         app,
         host='0.0.0.0',
         port=port,
-        debug=True,
-        allow_unsafe_werkzeug=True  # Only for development
+        debug=debug
     )

@@ -16,13 +16,11 @@ export const DashboardPage = () => {
   const { activeFamily, families, isLoading: familiesLoading } = useFamily();
 
   const { data: recipes = [], isLoading: recipesLoading } = useRecipes(
-    activeFamily?.id || 0,
-    { enabled: !!activeFamily }
+    activeFamily?.id
   );
 
   const { data: shoppingLists = [], isLoading: shoppingLoading } = useShoppingLists(
-    activeFamily?.id || 0,
-    { enabled: !!activeFamily }
+    activeFamily?.id
   );
 
   if (familiesLoading) {
@@ -59,7 +57,7 @@ export const DashboardPage = () => {
             description="Create a family to start planning meals together"
             action={{
               label: "Create Family",
-              to: "/families"
+              onClick: () => window.location.href = "/families"
             }}
           />
         </div>
@@ -77,7 +75,7 @@ export const DashboardPage = () => {
     );
   }
 
-  const activeShoppingList = shoppingLists.find(list => !list.completed);
+  const activeShoppingList = shoppingLists.find(list => list.is_active);
   const completedItems = activeShoppingList?.items?.filter(item => item.checked).length || 0;
   const totalItems = activeShoppingList?.items?.length || 0;
 
@@ -317,7 +315,7 @@ export const DashboardPage = () => {
               description="Add your first recipe to get started"
               action={{
                 label: "Add Recipe",
-                to: "/recipes/new"
+                onClick: () => window.location.href = "/recipes/new"
               }}
             />
           ) : (

@@ -134,7 +134,7 @@ def delete_shopping_list(family_id, list_id):
 @family_member_required
 def add_item(family_id, list_id):
     """Add item to shopping list"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     shopping_list = ShoppingList.get_by_id(list_id)
 
     if not shopping_list or shopping_list.family_id != family_id:
@@ -177,7 +177,7 @@ def add_item(family_id, list_id):
 @family_member_required
 def update_item(family_id, list_id, item_id):
     """Update shopping list item"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     item = ShoppingListItem.get_by_id(item_id)
 
     if not item or item.shopping_list.family_id != family_id:
@@ -250,7 +250,7 @@ def delete_item(family_id, list_id, item_id):
 @family_member_required
 def bulk_add_items(family_id, list_id):
     """Bulk add items (useful for adding from recipes)"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     shopping_list = ShoppingList.get_by_id(list_id)
 
     if not shopping_list or shopping_list.family_id != family_id:
