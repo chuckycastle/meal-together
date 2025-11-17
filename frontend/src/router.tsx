@@ -2,11 +2,12 @@
  * React Router Configuration
  */
 
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 
 // Placeholder pages - will be implemented in later phases
-const LoginPage = () => <div>Login Page (TODO)</div>;
-const RegisterPage = () => <div>Register Page (TODO)</div>;
 const DashboardPage = () => <div>Dashboard Page (TODO)</div>;
 const FamiliesPage = () => <div>Families Page (TODO)</div>;
 const RecipesPage = () => <div>Recipes Page (TODO)</div>;
@@ -18,64 +19,97 @@ const CookingModePage = () => <div>Cooking Mode Page (TODO)</div>;
 const ProfilePage = () => <div>Profile Page (TODO)</div>;
 const NotFoundPage = () => <div>404 - Page Not Found</div>;
 
-export const router = createBrowserRouter([
-  // Public routes
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/register',
-    element: <RegisterPage />,
-  },
+export const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-  // Protected routes (will add ProtectedRoute wrapper in Phase 2)
-  {
-    path: '/',
-    element: <DashboardPage />,
-  },
-  {
-    path: '/families',
-    element: <FamiliesPage />,
-  },
-  {
-    path: '/recipes',
-    element: <RecipesPage />,
-  },
-  {
-    path: '/recipes/new',
-    element: <RecipeFormPage />,
-  },
-  {
-    path: '/recipes/:id',
-    element: <RecipeDetailPage />,
-  },
-  {
-    path: '/recipes/:id/edit',
-    element: <RecipeFormPage />,
-  },
-  {
-    path: '/shopping',
-    element: <ShoppingPage />,
-  },
-  {
-    path: '/timeline',
-    element: <TimelinePage />,
-  },
-  {
-    path: '/cooking',
-    element: <CookingModePage />,
-  },
-  {
-    path: '/profile',
-    element: <ProfilePage />,
-  },
+      {/* Protected routes */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/families"
+        element={
+          <ProtectedRoute>
+            <FamiliesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recipes"
+        element={
+          <ProtectedRoute>
+            <RecipesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recipes/new"
+        element={
+          <ProtectedRoute>
+            <RecipeFormPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recipes/:id"
+        element={
+          <ProtectedRoute>
+            <RecipeDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recipes/:id/edit"
+        element={
+          <ProtectedRoute>
+            <RecipeFormPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/shopping"
+        element={
+          <ProtectedRoute>
+            <ShoppingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/timeline"
+        element={
+          <ProtectedRoute>
+            <TimelinePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cooking"
+        element={
+          <ProtectedRoute>
+            <CookingModePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
 
-  // 404
-  {
-    path: '*',
-    element: <NotFoundPage />,
-  },
-]);
-
-export default router;
+      {/* 404 */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+};
