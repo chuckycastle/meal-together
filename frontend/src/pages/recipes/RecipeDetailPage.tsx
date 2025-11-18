@@ -11,6 +11,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { IngredientList } from '../../components/recipes/IngredientList';
 import { CookingStepList } from '../../components/recipes/CookingStepList';
+import { Layout } from '../../components/layout/Layout';
 
 export const RecipeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -87,7 +88,8 @@ export const RecipeDetailPage = () => {
   const isOwner = user?.id === recipe.assigned_to_id;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <Layout>
+      <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <Link
@@ -332,5 +334,6 @@ export const RecipeDetailPage = () => {
         )}
       </div>
     </div>
+    </Layout>
   );
 };

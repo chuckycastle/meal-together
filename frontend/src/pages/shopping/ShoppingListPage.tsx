@@ -16,6 +16,7 @@ import {
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ShoppingItemForm, CategorySection } from '../../components/shopping';
+import { Layout } from '../../components/layout/Layout';
 import type { ShoppingListItem, ShoppingItemFormData } from '../../types';
 
 export const ShoppingListPage = () => {
@@ -166,14 +167,15 @@ export const ShoppingListPage = () => {
   const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Shopping List</h1>
-            <p className="text-gray-600 mt-1">{activeFamily.name}</p>
-          </div>
+    <Layout>
+      <div className="p-6 max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Shopping List</h1>
+              <p className="text-gray-600 mt-1">{activeFamily.name}</p>
+            </div>
 
           {/* Connection Status */}
           <div className="flex items-center gap-2">
@@ -259,5 +261,6 @@ export const ShoppingListPage = () => {
         </div>
       )}
     </div>
+    </Layout>
   );
 };

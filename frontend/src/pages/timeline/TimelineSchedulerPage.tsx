@@ -11,6 +11,7 @@ import { ErrorMessage } from '../../components/ui/ErrorMessage';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { RecipeTimeline, RecipeTimelineItem } from '../../components/timeline';
 import type { Recipe } from '../../types';
+import { Layout } from '../../components/layout/Layout';
 
 export const TimelineSchedulerPage = () => {
   const { activeFamily } = useFamily();
@@ -158,14 +159,15 @@ export const TimelineSchedulerPage = () => {
   );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Timeline Scheduler</h1>
-        <p className="text-gray-600">
-          Plan when to start cooking multiple recipes to have them all ready at the same time
-        </p>
-      </div>
+    <Layout>
+      <div className="p-6 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Timeline Scheduler</h1>
+          <p className="text-gray-600">
+            Plan when to start cooking multiple recipes to have them all ready at the same time
+          </p>
+        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Recipe Selection */}
@@ -348,5 +350,6 @@ export const TimelineSchedulerPage = () => {
         </div>
       </div>
     </div>
+    </Layout>
   );
 };

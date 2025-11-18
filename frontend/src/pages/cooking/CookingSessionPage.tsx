@@ -21,6 +21,7 @@ import {
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TimerCard } from '../../components/cooking';
+import { Layout } from '../../components/layout/Layout';
 
 export const CookingSessionPage = () => {
   const [searchParams] = useSearchParams();
@@ -239,8 +240,9 @@ export const CookingSessionPage = () => {
   const totalTimers = timers.length;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Audio element for notifications */}
+    <Layout>
+      <div className="p-6 max-w-6xl mx-auto">
+        {/* Audio element for notifications */}
       <audio
         ref={audioRef}
         src="data:audio/wav;base64,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"
@@ -338,5 +340,6 @@ export const CookingSessionPage = () => {
         </div>
       )}
     </div>
+    </Layout>
   );
 };

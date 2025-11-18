@@ -11,6 +11,7 @@ import { AppRoutes } from './router';
 import { ErrorBoundary } from './components/ui';
 import { AuthProvider } from './contexts/AuthContext';
 import { FamilyProvider } from './contexts/FamilyContext';
+import { WebSocketProvider } from './contexts/WebSocketContext';
 
 function App() {
   return (
@@ -19,7 +20,9 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <FamilyProvider>
-              <AppRoutes />
+              <WebSocketProvider>
+                <AppRoutes />
+              </WebSocketProvider>
             </FamilyProvider>
           </AuthProvider>
         </BrowserRouter>

@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useRecipes } from '../../hooks/useRecipes';
 import { RecipeList } from '../../components/recipes';
+import { Layout } from '../../components/layout/Layout';
 
 export const RecipeListPage = () => {
   const { activeFamily } = useFamily();
@@ -25,18 +26,21 @@ export const RecipeListPage = () => {
 
   if (!activeFamily) {
     return (
-      <div className="p-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800">
-            Please select a family to view recipes
-          </p>
+      <Layout>
+        <div className="p-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800">
+              Please select a family to view recipes
+            </p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="p-6">
+    <Layout>
+      <div className="p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -101,5 +105,6 @@ export const RecipeListPage = () => {
         error={error}
       />
     </div>
+    </Layout>
   );
 };
