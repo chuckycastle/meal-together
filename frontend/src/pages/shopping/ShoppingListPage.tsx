@@ -187,13 +187,13 @@ export const ShoppingListPage = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Shopping List</h1>
-              <p className="text-gray-700 mt-1">{activeFamily.name}</p>
+              <p className="text-gray-800 mt-1">{activeFamily.name}</p>
             </div>
 
           {/* Connection Status */}
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`} />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-800">
               {isConnected ? 'Live' : 'Offline'}
             </span>
           </div>
@@ -202,7 +202,7 @@ export const ShoppingListPage = () => {
         {/* Progress Bar */}
         {totalCount > 0 && (
           <div className="mb-4">
-            <div className="flex items-center justify-between text-sm text-gray-700 mb-2">
+            <div className="flex items-center justify-between text-sm text-gray-800 mb-2">
               <span>
                 {completedCount} of {totalCount} items completed
               </span>

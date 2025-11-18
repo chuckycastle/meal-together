@@ -118,7 +118,7 @@ export const RecipeDetailPage = () => {
               {recipe.name}
             </h1>
             {recipe.description && (
-              <p className="text-lg text-gray-700">{recipe.description}</p>
+              <p className="text-lg text-gray-800">{recipe.description}</p>
             )}
           </div>
 
@@ -128,7 +128,7 @@ export const RecipeDetailPage = () => {
               <>
                 <Link
                   to={`/recipes/${recipe.id}/edit`}
-                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                  className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
                 >
                   <svg
                     className="w-5 h-5"
@@ -185,19 +185,19 @@ export const RecipeDetailPage = () => {
       {/* Recipe Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <p className="text-sm text-gray-700 mb-1">Prep Time</p>
+          <p className="text-sm text-gray-800 mb-1">Prep Time</p>
           <p className="text-2xl font-bold text-gray-900">{recipe.prep_time} min</p>
         </div>
         <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <p className="text-sm text-gray-700 mb-1">Cook Time</p>
+          <p className="text-sm text-gray-800 mb-1">Cook Time</p>
           <p className="text-2xl font-bold text-gray-900">{recipe.cook_time} min</p>
         </div>
         <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <p className="text-sm text-gray-700 mb-1">Total Time</p>
+          <p className="text-sm text-gray-800 mb-1">Total Time</p>
           <p className="text-2xl font-bold text-gray-900">{recipe.total_time} min</p>
         </div>
         <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <p className="text-sm text-gray-700 mb-1">Servings</p>
+          <p className="text-sm text-gray-800 mb-1">Servings</p>
           <p className="text-2xl font-bold text-gray-900">{recipe.servings}</p>
         </div>
       </div>
@@ -280,7 +280,7 @@ export const RecipeDetailPage = () => {
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
                   <span className="font-medium text-gray-900">{timer.name}</span>
-                  <span className="text-gray-700">
+                  <span className="text-gray-800">
                     {Math.floor(timer.duration / 60)}:
                     {String(timer.duration % 60).padStart(2, '0')}
                   </span>
@@ -288,7 +288,7 @@ export const RecipeDetailPage = () => {
               ))}
             </ul>
           ) : (
-            <p className="text-gray-700 italic">No timers defined</p>
+            <p className="text-gray-800 italic">No timers defined</p>
           )}
         </div>
       </div>
@@ -315,7 +315,7 @@ export const RecipeDetailPage = () => {
       </div>
 
       {/* Additional Info */}
-      <div className="mt-8 text-sm text-gray-700">
+      <div className="mt-8 text-sm text-gray-800">
         {recipe.assigned_to && (
           <p>Assigned to: {recipe.assigned_to.full_name}</p>
         )}

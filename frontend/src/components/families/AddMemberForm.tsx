@@ -44,7 +44,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ onSubmit, onCancel
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
           Member Email
         </label>
         <input
@@ -58,7 +58,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ onSubmit, onCancel
         {error && (
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
-        <p className="mt-1 text-xs text-gray-700 dark:text-gray-700">
+        <p className="mt-1 text-xs text-gray-800 dark:text-gray-800">
           The user must have an existing account to be added
         </p>
       </div>
@@ -67,7 +67,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ onSubmit, onCancel
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+          className="px-4 py-2 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
         >
           Cancel
         </button>

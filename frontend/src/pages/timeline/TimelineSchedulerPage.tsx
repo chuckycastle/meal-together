@@ -164,7 +164,7 @@ export const TimelineSchedulerPage = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Timeline Scheduler</h1>
-          <p className="text-gray-700">
+          <p className="text-gray-800">
             Plan when to start cooking multiple recipes to have them all ready at the same time
           </p>
         </div>
@@ -197,25 +197,25 @@ export const TimelineSchedulerPage = () => {
               <div className="flex gap-2">
                 <button
                   onClick={handleSetTargetTimeNow}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Now
                 </button>
                 <button
                   onClick={() => handleSetTargetTimeLater(1)}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   +1 hour
                 </button>
                 <button
                   onClick={() => handleSetTargetTimeLater(2)}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   +2 hours
                 </button>
                 <button
                   onClick={() => handleSetTargetTimeLater(4)}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   +4 hours
                 </button>
@@ -230,7 +230,7 @@ export const TimelineSchedulerPage = () => {
             </h2>
 
             {availableRecipes.length === 0 ? (
-              <p className="text-sm text-gray-700 italic">
+              <p className="text-sm text-gray-800 italic">
                 {selectedRecipes.length > 0
                   ? 'All recipes have been added to the timeline'
                   : 'No recipes available'}
@@ -244,7 +244,7 @@ export const TimelineSchedulerPage = () => {
                     className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
                   >
                     <div className="font-medium text-gray-900">{recipe.name}</div>
-                    <div className="text-sm text-gray-700 mt-1">
+                    <div className="text-sm text-gray-800 mt-1">
                       {recipe.total_time} minutes
                     </div>
                   </button>
@@ -311,7 +311,7 @@ export const TimelineSchedulerPage = () => {
           {selectedRecipes.length === 0 && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
               <svg
-                className="w-16 h-16 mx-auto mb-4 text-gray-700"
+                className="w-16 h-16 mx-auto mb-4 text-gray-800"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -323,8 +323,8 @@ export const TimelineSchedulerPage = () => {
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p className="text-gray-700 mb-2">No recipes selected</p>
-              <p className="text-sm text-gray-700">
+              <p className="text-gray-800 mb-2">No recipes selected</p>
+              <p className="text-sm text-gray-800">
                 Select recipes from the left to create a cooking timeline
               </p>
             </div>

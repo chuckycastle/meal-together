@@ -40,7 +40,7 @@ export const DashboardPage = () => {
           <EmptyState
             icon={
               <svg
-                className="w-16 h-16 text-gray-700"
+                className="w-16 h-16 text-gray-800"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -87,7 +87,7 @@ export const DashboardPage = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             Welcome back, {user?.first_name}!
           </h1>
-          <p className="mt-2 text-gray-700">
+          <p className="mt-2 text-gray-800">
             Managing meals for <span className="font-semibold">{activeFamily.name}</span>
           </p>
         </div>
@@ -98,7 +98,7 @@ export const DashboardPage = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-700">Recipes</p>
+                <p className="text-sm font-medium text-gray-800">Recipes</p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900">
                   {recipesLoading ? '...' : recipes.length}
                 </p>
@@ -131,7 +131,7 @@ export const DashboardPage = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-700">Shopping</p>
+                <p className="text-sm font-medium text-gray-800">Shopping</p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900">
                   {shoppingLoading ? '...' : `${completedItems}/${totalItems}`}
                 </p>
@@ -164,7 +164,7 @@ export const DashboardPage = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-700">Members</p>
+                <p className="text-sm font-medium text-gray-800">Members</p>
                 <p className="mt-2 text-3xl font-semibold text-gray-900">
                   {activeFamily.members?.length || 0}
                 </p>
@@ -200,10 +200,10 @@ export const DashboardPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               to="/recipes/new"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
             >
               <svg
-                className="w-5 h-5 mr-2 text-gray-700"
+                className="w-5 h-5 mr-2 text-gray-800"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -220,10 +220,10 @@ export const DashboardPage = () => {
 
             <Link
               to="/shopping"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
             >
               <svg
-                className="w-5 h-5 mr-2 text-gray-700"
+                className="w-5 h-5 mr-2 text-gray-800"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -240,10 +240,10 @@ export const DashboardPage = () => {
 
             <Link
               to="/timeline"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
             >
               <svg
-                className="w-5 h-5 mr-2 text-gray-700"
+                className="w-5 h-5 mr-2 text-gray-800"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -260,10 +260,10 @@ export const DashboardPage = () => {
 
             <Link
               to="/cooking"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
             >
               <svg
-                className="w-5 h-5 mr-2 text-gray-700"
+                className="w-5 h-5 mr-2 text-gray-800"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -298,7 +298,7 @@ export const DashboardPage = () => {
             <EmptyState
               icon={
                 <svg
-                  className="w-12 h-12 text-gray-700"
+                  className="w-12 h-12 text-gray-800"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -327,7 +327,7 @@ export const DashboardPage = () => {
                   className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <h3 className="font-medium text-gray-900">{recipe.name}</h3>
-                  <p className="mt-1 text-sm text-gray-700">
+                  <p className="mt-1 text-sm text-gray-800">
                     {recipe.prep_time + recipe.cook_time} min • {recipe.servings} servings
                   </p>
                 </Link>

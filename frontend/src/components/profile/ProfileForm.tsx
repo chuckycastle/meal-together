@@ -32,7 +32,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user, onSubmit }) => {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="first_name" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
             First Name
           </label>
           <input
@@ -47,7 +47,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user, onSubmit }) => {
         </div>
 
         <div>
-          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="last_name" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
             Last Name
           </label>
           <input
@@ -63,7 +63,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user, onSubmit }) => {
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
           Email
         </label>
         <input

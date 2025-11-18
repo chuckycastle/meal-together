@@ -40,7 +40,7 @@ export const LoginPage = () => {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to MealTogether
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-700">
+          <p className="mt-2 text-center text-sm text-gray-800">
             Or{' '}
             <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
               create a new account
@@ -92,7 +92,7 @@ export const LoginPage = () => {
               >
                 {showPassword ? (
                   <svg
-                    className="h-5 w-5 text-gray-700"
+                    className="h-5 w-5 text-gray-800"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -106,7 +106,7 @@ export const LoginPage = () => {
                   </svg>
                 ) : (
                   <svg
-                    className="h-5 w-5 text-gray-700"
+                    className="h-5 w-5 text-gray-800"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

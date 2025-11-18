@@ -12,7 +12,7 @@ interface IngredientListProps {
 export const IngredientList = ({ ingredients }: IngredientListProps) => {
   if (ingredients.length === 0) {
     return (
-      <p className="text-gray-700 italic">No ingredients listed</p>
+      <p className="text-gray-800 italic">No ingredients listed</p>
     );
   }
 
@@ -30,7 +30,7 @@ export const IngredientList = ({ ingredients }: IngredientListProps) => {
                 {ingredient.quantity}{' '}
               </span>
             )}
-            <span className="text-gray-700">{ingredient.name}</span>
+            <span className="text-gray-800">{ingredient.name}</span>
           </div>
         </li>
       ))}

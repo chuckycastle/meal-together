@@ -185,7 +185,7 @@ export const CookingSessionPage = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               Start Cooking {recipe?.name}?
             </h2>
-            <p className="text-gray-700 mb-6">
+            <p className="text-gray-800 mb-6">
               This will create a new cooking session with timers for this recipe
             </p>
             <div className="flex items-center gap-4 justify-center">
@@ -205,7 +205,7 @@ export const CookingSessionPage = () => {
               </button>
               <button
                 onClick={() => navigate('/recipes')}
-                className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+                className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>
@@ -263,14 +263,14 @@ export const CookingSessionPage = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
               {session.recipe?.name}
             </h1>
-            <p className="text-gray-700">Cooking Session</p>
+            <p className="text-gray-800">Cooking Session</p>
           </div>
 
           {/* Connection & Complete */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`} />
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-gray-800">
                 {isConnected ? 'Synced' : 'Offline'}
               </span>
             </div>
@@ -288,10 +288,10 @@ export const CookingSessionPage = () => {
         {totalTimers > 0 && (
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-800">
                 Timer Progress
               </span>
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-gray-800">
                 {completedTimers} of {totalTimers} completed
               </span>
             </div>
@@ -341,7 +341,7 @@ export const CookingSessionPage = () => {
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
                     {step.order}
                   </span>
-                  <p className="flex-1 text-gray-700 pt-1">{step.instruction}</p>
+                  <p className="flex-1 text-gray-800 pt-1">{step.instruction}</p>
                 </li>
               ))}
           </ol>

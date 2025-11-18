@@ -188,7 +188,7 @@ export const RecipeFormPage = () => {
         <h1 className="text-3xl font-bold text-gray-900">
           {isEditing ? 'Edit Recipe' : 'Create New Recipe'}
         </h1>
-        <p className="text-gray-700 mt-2">
+        <p className="text-gray-800 mt-2">
           {isEditing ? 'Update your recipe details' : 'Add a new recipe to your family collection'}
         </p>
       </div>
@@ -207,7 +207,7 @@ export const RecipeFormPage = () => {
                       ? 'bg-blue-600 text-white'
                       : index < currentStepIndex
                       ? 'bg-green-600 text-white'
-                      : 'bg-gray-200 text-gray-700'
+                      : 'bg-gray-200 text-gray-800'
                   }`}
                 >
                   {index < currentStepIndex ? (
@@ -220,7 +220,7 @@ export const RecipeFormPage = () => {
                 </button>
                 <span
                   className={`ml-2 font-medium hidden md:inline ${
-                    currentStep === step.id ? 'text-blue-600' : 'text-gray-700'
+                    currentStep === step.id ? 'text-blue-600' : 'text-gray-800'
                   }`}
                 >
                   {step.title}
@@ -268,7 +268,7 @@ export const RecipeFormPage = () => {
             type="button"
             onClick={goToPreviousStep}
             disabled={currentStepIndex === 0}
-            className="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="bg-gray-100 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

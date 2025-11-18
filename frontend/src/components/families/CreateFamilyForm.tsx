@@ -32,7 +32,7 @@ export const CreateFamilyForm: React.FC<CreateFamilyFormProps> = ({ onSubmit, on
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
           Family Name
         </label>
         <input
@@ -48,7 +48,7 @@ export const CreateFamilyForm: React.FC<CreateFamilyFormProps> = ({ onSubmit, on
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
           Description (Optional)
         </label>
         <textarea
@@ -67,7 +67,7 @@ export const CreateFamilyForm: React.FC<CreateFamilyFormProps> = ({ onSubmit, on
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+          className="px-4 py-2 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
         >
           Cancel
         </button>

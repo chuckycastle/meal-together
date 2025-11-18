@@ -76,7 +76,7 @@ export const RecipeListPage = () => {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <svg
-            className="w-5 h-5 text-gray-700 absolute left-3 top-2.5"
+            className="w-5 h-5 text-gray-800 absolute left-3 top-2.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -92,7 +92,7 @@ export const RecipeListPage = () => {
 
         {/* Results count */}
         {searchQuery && (
-          <p className="mt-2 text-sm text-gray-700">
+          <p className="mt-2 text-sm text-gray-800">
             Found {filteredRecipes.length} recipe(s)
           </p>
         )}

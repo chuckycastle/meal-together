@@ -24,7 +24,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       {icon && (
-        <div className="mb-4 text-gray-700 dark:text-gray-400">
+        <div className="mb-4 text-gray-800 dark:text-gray-400">
           {icon}
         </div>
       )}
@@ -32,7 +32,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {title}
       </h3>
       {description && (
-        <p className="mb-6 max-w-md text-sm text-gray-700 dark:text-gray-300">
+        <p className="mb-6 max-w-md text-sm text-gray-800 dark:text-gray-300">
           {description}
         </p>
       )}

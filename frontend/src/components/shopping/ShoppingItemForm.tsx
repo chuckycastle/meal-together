@@ -69,7 +69,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
             setIsExpanded(false);
             reset();
           }}
-          className="text-gray-700 hover:text-gray-700"
+          className="text-gray-800 hover:text-gray-800"
           aria-label="Close form"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +80,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
 
       {/* Item Name */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-800 mb-1">
           Item Name *
         </label>
         <input
@@ -99,7 +99,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
       {/* Quantity and Category */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="quantity" className="block text-sm font-medium text-gray-800 mb-1">
             Quantity
           </label>
           <input
@@ -112,7 +112,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
         </div>
 
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="category" className="block text-sm font-medium text-gray-800 mb-1">
             Category
           </label>
           <select
@@ -132,7 +132,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
 
       {/* Notes */}
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="notes" className="block text-sm font-medium text-gray-800 mb-1">
           Notes
         </label>
         <textarea
@@ -175,7 +175,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
             reset();
           }}
           disabled={isAdding}
-          className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+          className="px-4 py-2 text-gray-800 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
         >
           Cancel
         </button>

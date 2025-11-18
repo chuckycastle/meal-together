@@ -91,7 +91,7 @@ export const TimerCard = ({
         >
           {formatTime(localRemaining)}
         </div>
-        <div className="text-sm text-gray-700 mt-1">
+        <div className="text-sm text-gray-800 mt-1">
           of {formatTime(timer.duration)}
         </div>
       </div>
@@ -127,7 +127,7 @@ export const TimerCard = ({
           <span className="text-yellow-600 font-medium">Paused</span>
         )}
         {!isCompleted && !isRunning && !isPaused && (
-          <span className="text-gray-700">Ready to start</span>
+          <span className="text-gray-800">Ready to start</span>
         )}
       </div>
 

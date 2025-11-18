@@ -43,7 +43,7 @@ export const RegisterPage = () => {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-700">
+          <p className="mt-2 text-center text-sm text-gray-800">
             Or{' '}
             <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
               sign in to your existing account
@@ -56,7 +56,7 @@ export const RegisterPage = () => {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-800">
                 Email address
               </label>
               <input
@@ -76,7 +76,7 @@ export const RegisterPage = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="first_name" className="block text-sm font-medium text-gray-800">
                   First name
                 </label>
                 <input
@@ -95,7 +95,7 @@ export const RegisterPage = () => {
               </div>
 
               <div>
-                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="last_name" className="block text-sm font-medium text-gray-800">
                   Last name
                 </label>
                 <input
@@ -115,7 +115,7 @@ export const RegisterPage = () => {
             </div>
 
             <div className="relative">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-800">
                 Password
               </label>
               <input
@@ -135,7 +135,7 @@ export const RegisterPage = () => {
               >
                 {showPassword ? (
                   <svg
-                    className="h-5 w-5 text-gray-700"
+                    className="h-5 w-5 text-gray-800"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -149,7 +149,7 @@ export const RegisterPage = () => {
                   </svg>
                 ) : (
                   <svg
-                    className="h-5 w-5 text-gray-700"
+                    className="h-5 w-5 text-gray-800"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -175,7 +175,7 @@ export const RegisterPage = () => {
             </div>
 
             <div className="relative">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-800">
                 Confirm password
               </label>
               <input
@@ -195,7 +195,7 @@ export const RegisterPage = () => {
               >
                 {showConfirmPassword ? (
                   <svg
-                    className="h-5 w-5 text-gray-700"
+                    className="h-5 w-5 text-gray-800"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -209,7 +209,7 @@ export const RegisterPage = () => {
                   </svg>
                 ) : (
                   <svg
-                    className="h-5 w-5 text-gray-700"
+                    className="h-5 w-5 text-gray-800"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
