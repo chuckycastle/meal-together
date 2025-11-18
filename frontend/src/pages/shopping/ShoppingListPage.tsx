@@ -9,6 +9,7 @@ import { useWebSocket } from '../../contexts/WebSocketContext';
 import {
   useShoppingLists,
   useShoppingList,
+  useCreateShoppingList,
   useAddItem,
   useUpdateItem,
   useDeleteItem,
@@ -41,6 +42,7 @@ export const ShoppingListPage = () => {
   } = useShoppingList(activeFamily?.id, activeList?.id);
 
   // Mutations
+  const createShoppingList = useCreateShoppingList(activeFamily?.id || 0);
   const addItem = useAddItem(activeFamily?.id || 0, activeList?.id || 0);
   const updateItem = useUpdateItem(activeFamily?.id || 0, activeList?.id || 0);
   const deleteItem = useDeleteItem(activeFamily?.id || 0, activeList?.id || 0);
@@ -71,6 +73,15 @@ export const ShoppingListPage = () => {
       unsubscribeDeleted();
     };
   }, [on, isConnected, activeList, refetch]);
+
+  const handleCreateShoppingList = async () => {
+    if (!activeFamily) return;
+
+    await createShoppingList.mutateAsync({
+      name: `${activeFamily.name} Shopping List`,
+      is_active: true,
+    });
+  };
 
   const handleAddItem = async (data: ShoppingItemFormData) => {
     await addItem.mutateAsync(data);
@@ -144,10 +155,7 @@ export const ShoppingListPage = () => {
             description="Create a shopping list to get started"
             action={{
               label: 'Create Shopping List',
-              onClick: () => {
-                // TODO: Implement create shopping list
-                alert('Create shopping list feature coming soon');
-              },
+              onClick: handleCreateShoppingList,
             }}
           />
         </div>
