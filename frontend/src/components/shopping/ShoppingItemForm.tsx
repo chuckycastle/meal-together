@@ -69,7 +69,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
             setIsExpanded(false);
             reset();
           }}
-          className="text-gray-400 hover:text-gray-600"
+          className="text-gray-700 hover:text-gray-700"
           aria-label="Close form"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

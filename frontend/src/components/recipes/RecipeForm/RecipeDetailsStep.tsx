@@ -18,7 +18,7 @@ export const RecipeDetailsStep = ({ register, errors }: RecipeDetailsStepProps) 
 
       {/* Recipe Name */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-800 mb-1">
           Recipe Name *
         </label>
         <input
@@ -35,7 +35,7 @@ export const RecipeDetailsStep = ({ register, errors }: RecipeDetailsStepProps) 
 
       {/* Description */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-800 mb-1">
           Description
         </label>
         <textarea
@@ -53,7 +53,7 @@ export const RecipeDetailsStep = ({ register, errors }: RecipeDetailsStepProps) 
       {/* Time Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label htmlFor="prep_time" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="prep_time" className="block text-sm font-medium text-gray-800 mb-1">
             Prep Time (minutes) *
           </label>
           <input
@@ -70,7 +70,7 @@ export const RecipeDetailsStep = ({ register, errors }: RecipeDetailsStepProps) 
         </div>
 
         <div>
-          <label htmlFor="cook_time" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="cook_time" className="block text-sm font-medium text-gray-800 mb-1">
             Cook Time (minutes) *
           </label>
           <input
@@ -87,7 +87,7 @@ export const RecipeDetailsStep = ({ register, errors }: RecipeDetailsStepProps) 
         </div>
 
         <div>
-          <label htmlFor="servings" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="servings" className="block text-sm font-medium text-gray-800 mb-1">
             Servings *
           </label>
           <input
@@ -107,7 +107,7 @@ export const RecipeDetailsStep = ({ register, errors }: RecipeDetailsStepProps) 
 
       {/* Image URL */}
       <div>
-        <label htmlFor="image_url" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="image_url" className="block text-sm font-medium text-gray-800 mb-1">
           Image URL
         </label>
         <input
@@ -124,7 +124,7 @@ export const RecipeDetailsStep = ({ register, errors }: RecipeDetailsStepProps) 
 
       {/* Source URL */}
       <div>
-        <label htmlFor="source_url" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="source_url" className="block text-sm font-medium text-gray-800 mb-1">
           Source URL
         </label>
         <input

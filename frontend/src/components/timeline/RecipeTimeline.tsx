@@ -70,7 +70,7 @@ export const RecipeTimeline = ({ entries, targetTime }: RecipeTimelineProps) => 
       </h3>
 
       {/* Timeline Header */}
-      <div className="mb-4 flex items-center justify-between text-sm text-gray-600">
+      <div className="mb-4 flex items-center justify-between text-sm text-gray-700">
         <div>
           <span className="font-medium">Start: </span>
           <span>{formatTime(earliestStart)}</span>
@@ -113,7 +113,7 @@ export const RecipeTimeline = ({ entries, targetTime }: RecipeTimelineProps) => 
                   className="absolute top-0 bottom-0 w-px bg-gray-400"
                   style={{ left: `${position}%` }}
                 >
-                  <div className="absolute -top-5 left-0 transform -translate-x-1/2 text-xs text-gray-600 whitespace-nowrap">
+                  <div className="absolute -top-5 left-0 transform -translate-x-1/2 text-xs text-gray-700 whitespace-nowrap">
                     {formatTime(entry.startTime)}
                   </div>
                 </div>
@@ -134,7 +134,7 @@ export const RecipeTimeline = ({ entries, targetTime }: RecipeTimelineProps) => 
 
       {/* Legend */}
       <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-gray-700">
           <p className="mb-1">
             <span className="font-medium">Tip:</span> All recipes will be ready at the target time if you follow the schedule
           </p>

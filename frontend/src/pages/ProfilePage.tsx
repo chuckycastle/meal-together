@@ -60,7 +60,7 @@ export const ProfilePage = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile & Settings</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-gray-700 dark:text-gray-700">
             Manage your account settings and preferences
           </p>
         </div>
@@ -90,7 +90,7 @@ export const ProfilePage = () => {
               className={`${
                 activeTab === 'profile'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300 dark:text-gray-700 dark:hover:text-gray-300'
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
               Profile
@@ -100,7 +100,7 @@ export const ProfilePage = () => {
               className={`${
                 activeTab === 'password'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300 dark:text-gray-700 dark:hover:text-gray-300'
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
               Password
@@ -110,7 +110,7 @@ export const ProfilePage = () => {
               className={`${
                 activeTab === 'families'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300 dark:text-gray-700 dark:hover:text-gray-300'
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
               Families
@@ -134,7 +134,7 @@ export const ProfilePage = () => {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Change Password
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm text-gray-700 dark:text-gray-700 mb-4">
                 Update your password to keep your account secure
               </p>
               <ChangePasswordForm onSubmit={handleChangePassword} />
@@ -146,7 +146,7 @@ export const ProfilePage = () => {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Your Families
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm text-gray-700 dark:text-gray-700 mb-4">
                 You are a member of {families.length} {families.length === 1 ? 'family' : 'families'}
               </p>
               <div className="space-y-3">
@@ -158,11 +158,11 @@ export const ProfilePage = () => {
                     <div>
                       <h3 className="font-medium text-gray-900 dark:text-white">{family.name}</h3>
                       {family.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-700 dark:text-gray-700">
                           {family.description}
                         </p>
                       )}
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      <p className="text-xs text-gray-700 dark:text-gray-700 mt-1">
                         {family.member_count} {family.member_count === 1 ? 'member' : 'members'}
                       </p>
                     </div>
@@ -170,7 +170,7 @@ export const ProfilePage = () => {
                 ))}
 
                 {families.length === 0 && (
-                  <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                  <p className="text-center text-gray-700 dark:text-gray-700 py-8">
                     You are not a member of any families yet
                   </p>
                 )}
@@ -186,7 +186,7 @@ export const ProfilePage = () => {
           </h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Account Status</span>
+              <span className="text-sm text-gray-700 dark:text-gray-700">Account Status</span>
               <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {user.is_active ? (
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -200,13 +200,13 @@ export const ProfilePage = () => {
               </span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Member Since</span>
+              <span className="text-sm text-gray-700 dark:text-gray-700">Member Since</span>
               <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {new Date(user.created_at).toLocaleDateString()}
               </span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Last Updated</span>
+              <span className="text-sm text-gray-700 dark:text-gray-700">Last Updated</span>
               <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {new Date(user.updated_at).toLocaleDateString()}
               </span>

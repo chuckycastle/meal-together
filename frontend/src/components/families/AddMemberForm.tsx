@@ -58,7 +58,7 @@ export const AddMemberForm: React.FC<AddMemberFormProps> = ({ onSubmit, onCancel
         {error && (
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-xs text-gray-700 dark:text-gray-700">
           The user must have an existing account to be added
         </p>
       </div>

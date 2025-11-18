@@ -188,7 +188,7 @@ export const RecipeFormPage = () => {
         <h1 className="text-3xl font-bold text-gray-900">
           {isEditing ? 'Edit Recipe' : 'Create New Recipe'}
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-700 mt-2">
           {isEditing ? 'Update your recipe details' : 'Add a new recipe to your family collection'}
         </p>
       </div>
@@ -207,7 +207,7 @@ export const RecipeFormPage = () => {
                       ? 'bg-blue-600 text-white'
                       : index < currentStepIndex
                       ? 'bg-green-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
+                      : 'bg-gray-200 text-gray-700'
                   }`}
                 >
                   {index < currentStepIndex ? (
@@ -220,7 +220,7 @@ export const RecipeFormPage = () => {
                 </button>
                 <span
                   className={`ml-2 font-medium hidden md:inline ${
-                    currentStep === step.id ? 'text-blue-600' : 'text-gray-600'
+                    currentStep === step.id ? 'text-blue-600' : 'text-gray-700'
                   }`}
                 >
                   {step.title}

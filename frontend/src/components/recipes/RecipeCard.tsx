@@ -26,7 +26,7 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
       ) : (
         <div className="w-full h-48 bg-gray-200 rounded-md mb-3 flex items-center justify-center">
           <svg
-            className="w-16 h-16 text-gray-400"
+            className="w-16 h-16 text-gray-700"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -48,13 +48,13 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
         </h3>
 
         {recipe.description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-700 mb-3 line-clamp-2">
             {recipe.description}
           </p>
         )}
 
         {/* Time and Servings Info */}
-        <div className="flex items-center gap-4 text-sm text-gray-500">
+        <div className="flex items-center gap-4 text-sm text-gray-700">
           <div className="flex items-center gap-1">
             <svg
               className="w-4 h-4"
@@ -92,7 +92,7 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
 
         {/* Assigned To */}
         {recipe.assigned_to && (
-          <div className="mt-2 text-sm text-gray-500">
+          <div className="mt-2 text-sm text-gray-700">
             Assigned to: {recipe.assigned_to.full_name}
           </div>
         )}

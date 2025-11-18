@@ -33,7 +33,7 @@ export const CategorySection = ({
           </svg>
           {category || 'Uncategorized'}
         </h3>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-700">
           {checkedCount}/{totalCount} completed
         </span>
       </div>

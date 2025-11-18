@@ -49,10 +49,10 @@ export const MemberCard: React.FC<MemberCardProps> = ({
           <h3 className="text-sm font-medium text-gray-900 dark:text-white">
             {member.user?.full_name}
             {isCurrentUser && (
-              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">(You)</span>
+              <span className="ml-2 text-xs text-gray-700 dark:text-gray-700">(You)</span>
             )}
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{member.user?.email}</p>
+          <p className="text-xs text-gray-700 dark:text-gray-700">{member.user?.email}</p>
         </div>
       </div>
 

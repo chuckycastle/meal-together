@@ -51,18 +51,18 @@ export const ShoppingItem = ({ item, onToggle, onDelete, isUpdating }: ShoppingI
           <div className="flex-1">
             <p
               className={`text-gray-900 font-medium ${
-                item.checked ? 'line-through text-gray-500' : ''
+                item.checked ? 'line-through text-gray-700' : ''
               }`}
             >
               {item.name}
               {item.quantity && (
-                <span className="ml-2 text-sm text-gray-600 font-normal">
+                <span className="ml-2 text-sm text-gray-700 font-normal">
                   ({item.quantity})
                 </span>
               )}
             </p>
             {item.notes && (
-              <p className="text-sm text-gray-600 mt-1">{item.notes}</p>
+              <p className="text-sm text-gray-700 mt-1">{item.notes}</p>
             )}
           </div>
 
@@ -75,7 +75,7 @@ export const ShoppingItem = ({ item, onToggle, onDelete, isUpdating }: ShoppingI
         </div>
 
         {/* Metadata */}
-        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+        <div className="flex items-center gap-4 mt-2 text-xs text-gray-700">
           {item.added_by && (
             <span>Added by {item.added_by.full_name}</span>
           )}

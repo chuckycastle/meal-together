@@ -60,7 +60,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </h2>
             </div>
 
-            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mb-4 text-sm text-gray-700 dark:text-gray-700">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
 
