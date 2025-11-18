@@ -79,7 +79,6 @@ export const ShoppingListPage = () => {
 
     await createShoppingList.mutateAsync({
       name: `${activeFamily.name} Shopping List`,
-      is_active: true,
     });
   };
 
