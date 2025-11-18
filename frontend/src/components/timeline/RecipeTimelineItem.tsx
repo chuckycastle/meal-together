@@ -40,7 +40,7 @@ export const RecipeTimelineItem = ({
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           {/* Recipe Name */}
-          <h3 className="font-semibold text-gray-900 mb-2">{recipe.name}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{recipe.name}</h3>
 
           {/* Time Information */}
           <div className="space-y-1 text-sm">

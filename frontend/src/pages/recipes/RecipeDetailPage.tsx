@@ -114,7 +114,7 @@ export const RecipeDetailPage = () => {
 
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
               {recipe.name}
             </h1>
             {recipe.description && (
@@ -128,7 +128,7 @@ export const RecipeDetailPage = () => {
               <>
                 <Link
                   to={`/recipes/${recipe.id}/edit`}
-                  className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                  className="bg-gray-100 text-gray-800 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
                 >
                   <svg
                     className="w-5 h-5"
@@ -184,21 +184,21 @@ export const RecipeDetailPage = () => {
 
       {/* Recipe Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <p className="text-sm text-gray-800 mb-1">Prep Time</p>
-          <p className="text-2xl font-bold text-gray-900">{recipe.prep_time} min</p>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-800 dark:text-gray-300 mb-1">Prep Time</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{recipe.prep_time} min</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <p className="text-sm text-gray-800 mb-1">Cook Time</p>
-          <p className="text-2xl font-bold text-gray-900">{recipe.cook_time} min</p>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-800 dark:text-gray-300 mb-1">Cook Time</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{recipe.cook_time} min</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <p className="text-sm text-gray-800 mb-1">Total Time</p>
-          <p className="text-2xl font-bold text-gray-900">{recipe.total_time} min</p>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-800 dark:text-gray-300 mb-1">Total Time</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{recipe.total_time} min</p>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
-          <p className="text-sm text-gray-800 mb-1">Servings</p>
-          <p className="text-2xl font-bold text-gray-900">{recipe.servings}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-800 dark:text-gray-300 mb-1">Servings</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{recipe.servings}</p>
         </div>
       </div>
 
@@ -234,8 +234,8 @@ export const RecipeDetailPage = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Ingredients */}
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <svg
               className="w-6 h-6 text-blue-600"
               fill="none"
@@ -255,8 +255,8 @@ export const RecipeDetailPage = () => {
         </div>
 
         {/* Timers */}
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <svg
               className="w-6 h-6 text-blue-600"
               fill="none"
@@ -279,7 +279,7 @@ export const RecipeDetailPage = () => {
                   key={timer.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
-                  <span className="font-medium text-gray-900">{timer.name}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{timer.name}</span>
                   <span className="text-gray-800">
                     {Math.floor(timer.duration / 60)}:
                     {String(timer.duration % 60).padStart(2, '0')}
@@ -288,14 +288,14 @@ export const RecipeDetailPage = () => {
               ))}
             </ul>
           ) : (
-            <p className="text-gray-800 italic">No timers defined</p>
+            <p className="text-gray-800 dark:text-gray-300 italic">No timers defined</p>
           )}
         </div>
       </div>
 
       {/* Cooking Steps */}
       <div className="bg-white rounded-lg shadow p-6 border border-gray-200 mt-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <svg
             className="w-6 h-6 text-blue-600"
             fill="none"

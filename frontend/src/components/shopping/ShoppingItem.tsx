@@ -30,7 +30,7 @@ export const ShoppingItem = ({ item, onToggle, onDelete, isUpdating }: ShoppingI
 
   return (
     <div
-      className={`flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-opacity ${
+      className={`flex items-start gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-opacity ${
         isUpdating || isDeleting ? 'opacity-50' : ''
       }`}
     >
@@ -50,32 +50,32 @@ export const ShoppingItem = ({ item, onToggle, onDelete, isUpdating }: ShoppingI
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
             <p
-              className={`text-gray-900 font-medium ${
-                item.checked ? 'line-through text-gray-800' : ''
+              className={`text-gray-900 dark:text-white font-medium ${
+                item.checked ? 'line-through text-gray-500 dark:text-gray-400' : ''
               }`}
             >
               {item.name}
               {item.quantity && (
-                <span className="ml-2 text-sm text-gray-800 font-normal">
+                <span className="ml-2 text-sm text-gray-800 dark:text-gray-400 font-normal">
                   ({item.quantity})
                 </span>
               )}
             </p>
             {item.notes && (
-              <p className="text-sm text-gray-800 mt-1">{item.notes}</p>
+              <p className="text-sm text-gray-800 dark:text-gray-300 mt-1">{item.notes}</p>
             )}
           </div>
 
           {/* Category Badge */}
           {item.category && (
-            <span className="flex-shrink-0 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+            <span className="flex-shrink-0 px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
               {item.category}
             </span>
           )}
         </div>
 
         {/* Metadata */}
-        <div className="flex items-center gap-4 mt-2 text-xs text-gray-800">
+        <div className="flex items-center gap-4 mt-2 text-xs text-gray-800 dark:text-gray-400">
           {item.added_by && (
             <span>Added by {item.added_by.full_name}</span>
           )}

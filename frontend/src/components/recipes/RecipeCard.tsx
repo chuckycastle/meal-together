@@ -14,7 +14,7 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
   return (
     <Link
       to={`/recipes/${recipe.id}`}
-      className="block bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4 border border-gray-200"
+      className="block bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow p-4 border border-gray-200 dark:border-gray-700"
     >
       {/* Recipe Image */}
       {recipe.image_url ? (
@@ -43,12 +43,12 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
 
       {/* Recipe Details */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
           {recipe.name}
         </h3>
 
         {recipe.description && (
-          <p className="text-sm text-gray-800 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-800 dark:text-gray-300 mb-3 line-clamp-2">
             {recipe.description}
           </p>
         )}

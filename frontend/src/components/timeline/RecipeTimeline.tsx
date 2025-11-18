@@ -56,8 +56,8 @@ export const RecipeTimeline = ({ entries, targetTime }: RecipeTimelineProps) => 
   ];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+      <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
@@ -91,7 +91,7 @@ export const RecipeTimeline = ({ entries, targetTime }: RecipeTimelineProps) => 
           return (
             <div key={entry.recipe.id} className="relative">
               {/* Recipe Label */}
-              <div className="text-sm font-medium text-gray-800 mb-1 truncate">
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-300 mb-1 truncate">
                 {entry.recipe.name}
               </div>
 
@@ -113,7 +113,7 @@ export const RecipeTimeline = ({ entries, targetTime }: RecipeTimelineProps) => 
                   className="absolute top-0 bottom-0 w-px bg-gray-400"
                   style={{ left: `${position}%` }}
                 >
-                  <div className="absolute -top-5 left-0 transform -translate-x-1/2 text-xs text-gray-800 whitespace-nowrap">
+                  <div className="absolute -top-5 left-0 transform -translate-x-1/2 text-xs text-gray-800 dark:text-gray-300 whitespace-nowrap">
                     {formatTime(entry.startTime)}
                   </div>
                 </div>

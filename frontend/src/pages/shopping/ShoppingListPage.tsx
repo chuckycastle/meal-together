@@ -186,8 +186,8 @@ export const ShoppingListPage = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Shopping List</h1>
-              <p className="text-gray-800 mt-1">{activeFamily.name}</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Shopping List</h1>
+              <p className="text-gray-800 dark:text-gray-300 mt-1">{activeFamily.name}</p>
             </div>
 
           {/* Connection Status */}
@@ -202,13 +202,13 @@ export const ShoppingListPage = () => {
         {/* Progress Bar */}
         {totalCount > 0 && (
           <div className="mb-4">
-            <div className="flex items-center justify-between text-sm text-gray-800 mb-2">
+            <div className="flex items-center justify-between text-sm text-gray-800 dark:text-gray-300 mb-2">
               <span>
                 {completedCount} of {totalCount} items completed
               </span>
               <span>{Math.round(progressPercentage)}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 className="bg-green-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercentage}%` }}

@@ -83,11 +83,11 @@ export const DashboardPage = () => {
     <Layout>
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Welcome back, {user?.first_name}!
           </h1>
-          <p className="mt-2 text-gray-800">
+          <p className="mt-2 text-gray-800 dark:text-gray-300">
             Managing meals for <span className="font-semibold">{activeFamily.name}</span>
           </p>
         </div>
@@ -95,15 +95,15 @@ export const DashboardPage = () => {
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Recipes Card */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-800">Recipes</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-300">Recipes</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
                   {recipesLoading ? '...' : recipes.length}
                 </p>
               </div>
-              <div className="bg-blue-100 rounded-full p-3">
+              <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-3">
                 <svg
                   className="w-6 h-6 text-blue-600"
                   fill="none"
@@ -128,15 +128,15 @@ export const DashboardPage = () => {
           </div>
 
           {/* Shopping List Card */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-800">Shopping</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-300">Shopping</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
                   {shoppingLoading ? '...' : `${completedItems}/${totalItems}`}
                 </p>
               </div>
-              <div className="bg-green-100 rounded-full p-3">
+              <div className="bg-green-100 dark:bg-green-900 rounded-full p-3">
                 <svg
                   className="w-6 h-6 text-green-600"
                   fill="none"
@@ -161,15 +161,15 @@ export const DashboardPage = () => {
           </div>
 
           {/* Family Members Card */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-800">Members</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-300">Members</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
                   {activeFamily.members?.length || 0}
                 </p>
               </div>
-              <div className="bg-purple-100 rounded-full p-3">
+              <div className="bg-purple-100 dark:bg-purple-900 rounded-full p-3">
                 <svg
                   className="w-6 h-6 text-purple-600"
                   fill="none"
@@ -195,15 +195,15 @@ export const DashboardPage = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               to="/recipes/new"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-800 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               <svg
-                className="w-5 h-5 mr-2 text-gray-800"
+                className="w-5 h-5 mr-2 text-gray-800 dark:text-gray-200"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -220,10 +220,10 @@ export const DashboardPage = () => {
 
             <Link
               to="/shopping"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-800 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               <svg
-                className="w-5 h-5 mr-2 text-gray-800"
+                className="w-5 h-5 mr-2 text-gray-800 dark:text-gray-200"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -240,10 +240,10 @@ export const DashboardPage = () => {
 
             <Link
               to="/timeline"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-800 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               <svg
-                className="w-5 h-5 mr-2 text-gray-800"
+                className="w-5 h-5 mr-2 text-gray-800 dark:text-gray-200"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -260,10 +260,10 @@ export const DashboardPage = () => {
 
             <Link
               to="/cooking"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
+              className="flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-800 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               <svg
-                className="w-5 h-5 mr-2 text-gray-800"
+                className="w-5 h-5 mr-2 text-gray-800 dark:text-gray-200"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -281,9 +281,9 @@ export const DashboardPage = () => {
         </div>
 
         {/* Recent Recipes */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Recipes</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Recipes</h2>
             <Link
               to="/recipes"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -324,10 +324,10 @@ export const DashboardPage = () => {
                 <Link
                   key={recipe.id}
                   to={`/recipes/${recipe.id}`}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow dark:bg-gray-800"
                 >
-                  <h3 className="font-medium text-gray-900">{recipe.name}</h3>
-                  <p className="mt-1 text-sm text-gray-800">
+                  <h3 className="font-medium text-gray-900 dark:text-white">{recipe.name}</h3>
+                  <p className="mt-1 text-sm text-gray-800 dark:text-gray-300">
                     {recipe.prep_time + recipe.cook_time} min • {recipe.servings} servings
                   </p>
                 </Link>
