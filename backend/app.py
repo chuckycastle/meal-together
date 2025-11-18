@@ -14,9 +14,12 @@ if __name__ == '__main__':
     # Run with SocketIO
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_ENV') != 'production'
+    # Only allow unsafe Werkzeug in development
+    allow_unsafe = debug and os.getenv('FLASK_ENV') == 'development'
     socketio.run(
         app,
         host='0.0.0.0',
         port=port,
-        debug=debug
+        debug=debug,
+        allow_unsafe_werkzeug=allow_unsafe
     )

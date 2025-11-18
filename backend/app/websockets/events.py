@@ -2,7 +2,8 @@
 WebSocket events for real-time collaboration
 Based on dirtview's successful WebSocket implementation
 """
-from flask import request
+from datetime import datetime
+from flask import request, session
 from flask_socketio import emit, join_room, leave_room, disconnect
 from flask_jwt_extended import decode_token
 from app.models.user import User
@@ -45,8 +46,8 @@ def register_events(socketio):
                 disconnect()
                 return
 
-            # Store user_id in session
-            request.sid_data = {'user_id': user_id}
+            # Store user_id in Flask session
+            session['user_id'] = user_id
 
             emit('authenticated', {
                 'user': user.to_dict(),
@@ -68,7 +69,7 @@ def register_events(socketio):
                 return
 
             # Get user from session (set during authentication)
-            user_id = getattr(request, 'sid_data', {}).get('user_id')
+            user_id = session.get('user_id')
             if not user_id:
                 emit('error', {'message': 'Not authenticated'})
                 return
@@ -115,7 +116,7 @@ def register_events(socketio):
             room = f"family_{family_id}"
             leave_room(room)
 
-            user_id = getattr(request, 'sid_data', {}).get('user_id')
+            user_id = session.get('user_id')
 
             emit('left_family', {
                 'family_id': family_id,

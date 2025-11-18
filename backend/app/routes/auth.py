@@ -112,7 +112,7 @@ def get_current_user():
 @jwt_required()
 def update_profile():
     """Update current user profile"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.get_by_id(user_id)
 
     if not user:
@@ -147,7 +147,7 @@ def update_profile():
 @jwt_required()
 def change_password():
     """Change user password"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.get_by_id(user_id)
 
     if not user:

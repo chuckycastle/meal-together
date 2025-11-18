@@ -1,6 +1,6 @@
 [Unit]
-Description=MealTogether Backend API
-After=network.target postgresql.service
+Description=MealTogether Celery Worker
+After=network.target redis.service postgresql.service
 
 [Service]
 Type=simple
@@ -10,7 +10,7 @@ WorkingDirectory=/opt/applications/meal-together/backend
 Environment="PATH=/opt/applications/meal-together/backend/venv/bin"
 Environment="FLASK_ENV=production"
 EnvironmentFile=/opt/applications/meal-together/backend/.env
-ExecStart=/opt/applications/meal-together/backend/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:5000 wsgi:app
+ExecStart=/opt/applications/meal-together/backend/venv/bin/celery -A celery_app.celery worker --loglevel=info
 Restart=always
 RestartSec=10
 
