@@ -164,7 +164,7 @@ export const TimelineSchedulerPage = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Timeline Scheduler</h1>
-          <p className="text-gray-800">
+          <p className="text-gray-800 dark:text-gray-300">
             Plan when to start cooking multiple recipes to have them all ready at the same time
           </p>
         </div>
@@ -324,7 +324,7 @@ export const TimelineSchedulerPage = () => {
                 />
               </svg>
               <p className="text-gray-800 dark:text-gray-300 mb-2">No recipes selected</p>
-              <p className="text-sm text-gray-800">
+              <p className="text-sm text-gray-800 dark:text-gray-300">
                 Select recipes from the left to create a cooking timeline
               </p>
             </div>
