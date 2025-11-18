@@ -26,7 +26,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         aria-label="Loading"
       />
       {message && (
-        <p className="text-sm text-gray-800 dark:text-gray-800">{message}</p>
+        <p className="text-sm text-gray-800 dark:text-gray-200">{message}</p>
       )}
     </div>
   );
