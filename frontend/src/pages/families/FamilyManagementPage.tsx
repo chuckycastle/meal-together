@@ -132,7 +132,7 @@ export const FamilyManagementPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Family Management</h1>
-            <p className="mt-2 text-gray-700 dark:text-gray-700">
+            <p className="mt-2 text-gray-700 dark:text-gray-300">
               Manage your family members and settings
             </p>
           </div>
@@ -161,7 +161,7 @@ export const FamilyManagementPage = () => {
 
         {!activeFamily ? (
           <div className="text-center py-12">
-            <p className="text-gray-700 dark:text-gray-700">
+            <p className="text-gray-700 dark:text-gray-300">
               No family selected. Create or select a family to continue.
             </p>
           </div>
@@ -221,11 +221,11 @@ export const FamilyManagementPage = () => {
                         {activeFamily.name}
                       </h2>
                       {activeFamily.description && (
-                        <p className="mt-2 text-gray-700 dark:text-gray-700">
+                        <p className="mt-2 text-gray-700 dark:text-gray-300">
                           {activeFamily.description}
                         </p>
                       )}
-                      <p className="mt-2 text-sm text-gray-700 dark:text-gray-700">
+                      <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
                         {familyDetails?.member_count || 0} members
                       </p>
                     </>
@@ -234,7 +234,7 @@ export const FamilyManagementPage = () => {
                 {!editingFamily && (currentUserRole === 'owner' || currentUserRole === 'admin') && (
                   <button
                     onClick={() => setEditingFamily(true)}
-                    className="p-2 text-gray-700 hover:bg-gray-100 rounded dark:text-gray-700 dark:hover:bg-gray-700"
+                    className="p-2 text-gray-700 hover:bg-gray-100 rounded dark:text-gray-300 dark:hover:bg-gray-700"
                     title="Edit family details"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -289,7 +289,7 @@ export const FamilyManagementPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-white">Leave Family</h4>
-                  <p className="text-sm text-gray-700 dark:text-gray-700">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     You will lose access to all family recipes and data
                   </p>
                 </div>
