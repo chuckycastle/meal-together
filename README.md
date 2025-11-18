@@ -249,23 +249,29 @@ npm test
 
 ## Deployment
 
-### Docker
+### Production Deployment
+
+The application is deployed to AWS Lightsail at **mealtogether.chuckycastle.io**.
+
+**Quick deployment** (after code changes):
+
 ```bash
-docker-compose build
-docker-compose up -d
+ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
+  'cd /opt/applications/meal-together && \
+   git pull && \
+   cd frontend && \
+   npm run build && \
+   sudo systemctl reload nginx'
 ```
 
-### Manual
+For comprehensive deployment documentation, including:
+- Initial server setup
+- Environment configuration
+- Database migrations
+- Troubleshooting
+- Rollback procedures
 
-Backend:
-```bash
-gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:5000
-```
-
-Frontend:
-```bash
-npm run build
-```
+See **[DEPLOYMENT.md](./DEPLOYMENT.md)**
 
 ## Environment Variables
 
