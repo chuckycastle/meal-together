@@ -113,39 +113,45 @@ export const ShoppingListPage = () => {
 
   if (!activeFamily) {
     return (
-      <div className="p-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800">
-            Please select a family to view shopping list
-          </p>
+      <Layout>
+        <div className="p-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800">
+              Please select a family to view shopping list
+            </p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (isLoadingLists || isLoadingItems) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
-      </div>
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner />
+        </div>
+      </Layout>
     );
   }
 
   if (!activeList) {
     return (
-      <div className="p-6">
-        <EmptyState
-          title="No shopping list"
-          description="Create a shopping list to get started"
-          action={{
-            label: 'Create Shopping List',
-            onClick: () => {
-              // TODO: Implement create shopping list
-              alert('Create shopping list feature coming soon');
-            },
-          }}
-        />
-      </div>
+      <Layout>
+        <div className="p-6">
+          <EmptyState
+            title="No shopping list"
+            description="Create a shopping list to get started"
+            action={{
+              label: 'Create Shopping List',
+              onClick: () => {
+                // TODO: Implement create shopping list
+                alert('Create shopping list feature coming soon');
+              },
+            }}
+          />
+        </div>
+      </Layout>
     );
   }
 

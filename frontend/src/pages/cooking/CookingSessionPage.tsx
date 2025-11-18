@@ -164,74 +164,82 @@ export const CookingSessionPage = () => {
 
   if (!activeFamily) {
     return (
-      <div className="p-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800">
-            Please select a family to start cooking
-          </p>
+      <Layout>
+        <div className="p-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800">
+              Please select a family to start cooking
+            </p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   // Start session if recipe ID provided but no active session
   if (recipeId && !activeSession && !startSession.isPending) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Start Cooking {recipe?.name}?
-          </h2>
-          <p className="text-gray-600 mb-6">
-            This will create a new cooking session with timers for this recipe
-          </p>
-          <div className="flex items-center gap-4 justify-center">
-            <button
-              onClick={handleStartSession}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                />
-              </svg>
-              Start Cooking
-            </button>
-            <button
-              onClick={() => navigate('/recipes')}
-              className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Cancel
-            </button>
+      <Layout>
+        <div className="p-6 max-w-2xl mx-auto">
+          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Start Cooking {recipe?.name}?
+            </h2>
+            <p className="text-gray-600 mb-6">
+              This will create a new cooking session with timers for this recipe
+            </p>
+            <div className="flex items-center gap-4 justify-center">
+              <button
+                onClick={handleStartSession}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                  />
+                </svg>
+                Start Cooking
+              </button>
+              <button
+                onClick={() => navigate('/recipes')}
+                className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (!activeSession) {
     return (
-      <div className="p-6">
-        <EmptyState
-          title="No active cooking session"
-          description="Start cooking a recipe to use timers"
-          action={{
-            label: 'Browse Recipes',
-            onClick: () => navigate('/recipes'),
-          }}
-        />
-      </div>
+      <Layout>
+        <div className="p-6">
+          <EmptyState
+            title="No active cooking session"
+            description="Start cooking a recipe to use timers"
+            action={{
+              label: 'Browse Recipes',
+              onClick: () => navigate('/recipes'),
+            }}
+          />
+        </div>
+      </Layout>
     );
   }
 
   if (!session) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
-      </div>
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner />
+        </div>
+      </Layout>
     );
   }
 
