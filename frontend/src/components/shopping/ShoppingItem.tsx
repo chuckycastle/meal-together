@@ -4,6 +4,7 @@
  */
 
 import { useState, memo } from 'react';
+import { X } from 'lucide-react';
 import type { ShoppingListItem } from '../../types';
 
 interface ShoppingItemProps {
@@ -89,12 +90,10 @@ export const ShoppingItem = memo(({ item, onToggle, onDelete, isUpdating }: Shop
       <button
         onClick={handleDelete}
         disabled={isUpdating || isDeleting}
-        className="flex-shrink-0 text-red-600 hover:text-red-700 disabled:opacity-50 p-1"
+        className="flex-shrink-0 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 p-1"
         aria-label="Delete item"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        <X className="w-5 h-5" />
       </button>
     </div>
   );
