@@ -4,31 +4,33 @@ Collaborative meal planning and cooking coordination for families and groups.
 
 ## Features
 
-- Recipe management with ingredients, steps, and timers
-- Shared shopping lists with item tracking
-- Timeline scheduler for multiple recipes
-- Multi-timer coordination with real-time sync
-- Family group management with role-based access
+- **Recipe Management**: Ingredients, cooking steps, and predefined timers
+- **Collaborative Shopping Lists**: Real-time item tracking with optimistic locking
+- **Timeline Scheduler**: Calculate optimal start times for multiple recipes
+- **Multi-Timer Coordination**: Real-time timer sync across all family members
+- **Family Groups**: Role-based access control (Owner, Admin, Member)
+- **Real-Time Updates**: WebSocket-based live collaboration
+- **Performance Optimized**: Redis caching, lazy loading, code splitting
 
 ## Tech Stack
 
 ### Backend
-- Flask 3.0
-- Flask-SocketIO (WebSocket)
-- Flask-JWT-Extended (authentication)
-- SQLAlchemy (ORM)
-- PostgreSQL
-- Eventlet (async server)
+- Flask 3.0 + Flask-SocketIO (WebSocket)
+- Flask-JWT-Extended (JWT authentication)
+- Flask-Caching + Redis (caching layer)
+- SQLAlchemy (ORM) + PostgreSQL
+- Celery (background tasks)
+- Optimistic locking (race condition prevention)
 
 ### Frontend
-- React 18
-- TypeScript
-- Vite
-- TailwindCSS
-- TanStack Query
-- Zustand
-- Socket.IO Client
-- React Router
+- React 18 + TypeScript
+- Vite (build tool)
+- TailwindCSS (styling)
+- TanStack Query (data fetching)
+- Socket.IO Client (WebSocket)
+- React Router (routing)
+- Lucide React (icons)
+- Code splitting + lazy loading
 
 ## Project Structure
 
@@ -64,7 +66,8 @@ meal-together/
 ### Prerequisites
 - Python 3.10+
 - Node.js 18+
-- PostgreSQL 14+
+- PostgreSQL 15+
+- Redis 7+ (for caching and Celery)
 
 ### Backend
 
@@ -74,7 +77,19 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
+
+# Edit .env with your database and Redis URLs
+
+# Create database
 createdb meal_together_dev
+
+# Run migrations
+flask db upgrade
+
+# Start Redis (if not running)
+redis-server
+
+# Start backend server
 python app.py
 ```
 
@@ -281,6 +296,7 @@ FLASK_APP=app.py
 FLASK_ENV=production
 SECRET_KEY=<secret>
 DATABASE_URL=postgresql://user:pass@localhost/meal_together
+REDIS_URL=redis://localhost:6379/0
 JWT_SECRET_KEY=<secret>
 JWT_ACCESS_TOKEN_EXPIRES=3600
 JWT_REFRESH_TOKEN_EXPIRES=2592000
@@ -294,14 +310,24 @@ VITE_API_URL=https://api.yourdomain.com
 VITE_WS_URL=wss://api.yourdomain.com
 ```
 
-## Security
+## Security & Performance
 
+### Security
 - JWT authentication for protected endpoints
-- Family membership validation
-- WebSocket authentication
-- Input validation
+- Family membership validation on all routes
+- WebSocket authentication before room join
+- Input validation and sanitization
 - CSRF protection
-- Rate limiting
+- Optimistic locking for concurrent updates
+
+### Performance Optimizations
+- Redis caching for frequently accessed data
+- Database query optimization with eager loading
+- WebSocket payload size reduction (70-90%)
+- React Query configuration optimization
+- Code splitting and lazy loading
+- Event throttling and debouncing
+- Pagination on all list endpoints
 
 ## License
 
