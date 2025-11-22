@@ -10,11 +10,14 @@ from flask_jwt_extended import (
 )
 from app import db
 from app.models.user import User
+from app.utils.rate_limit import auth_rate_limit
+from app.utils.validation import validate_email, validate_password
 
 bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 
 @bp.route('/register', methods=['POST'])
+@auth_rate_limit
 def register():
     """Register a new user"""
     data = request.get_json()
@@ -55,6 +58,7 @@ def register():
 
 
 @bp.route('/login', methods=['POST'])
+@auth_rate_limit
 def login():
     """Login and get access tokens"""
     data = request.get_json()

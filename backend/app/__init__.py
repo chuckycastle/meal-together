@@ -51,20 +51,37 @@ def create_app(config_name=None):
     })
 
     # Register blueprints
-    from app.routes import auth, families, recipes, shopping_lists, cooking_sessions
+    from app.routes import auth, families, recipes, shopping_lists, cooking_sessions, health
     app.register_blueprint(auth.bp)
     app.register_blueprint(families.bp)
     app.register_blueprint(recipes.bp)
     app.register_blueprint(shopping_lists.bp)
     app.register_blueprint(cooking_sessions.bp)
+    app.register_blueprint(health.bp)
 
     # Register WebSocket events
     from app.websockets import events
     events.register_events(socketio)
 
+    # Setup logging
+    from app.utils.logger import setup_logger
+    logger = setup_logger(app)
+
     # Health check endpoint
     @app.route('/health')
     def health():
         return {'status': 'healthy'}, 200
+
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found(error):
+        logger.warning(f'404 Not Found: {error}')
+        return {'error': 'Not found'}, 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        logger.error(f'500 Internal Server Error: {error}', exc_info=True)
+        db.session.rollback()
+        return {'error': 'Internal server error'}, 500
 
     return app
