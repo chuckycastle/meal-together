@@ -3,7 +3,7 @@ Health check and monitoring endpoints
 """
 from flask import Blueprint, jsonify
 from datetime import datetime
-from app import db
+from app import db, cache
 from sqlalchemy import text
 import os
 
@@ -140,3 +140,41 @@ def metrics():
             'error': 'Failed to collect metrics',
             'message': str(e)
         }), 500
+
+
+@bp.route('/health/cache', methods=['GET'])
+def cache_health():
+    """
+    Cache health and statistics
+
+    Returns:
+        200: Cache statistics
+        503: Cache unavailable
+    """
+    try:
+        # Test cache connection with a ping
+        cache_type = cache.config.get('CACHE_TYPE', 'unknown')
+
+        # Try to set and get a test value
+        test_key = '__cache_health_test__'
+        cache.set(test_key, 'test', timeout=10)
+        test_result = cache.get(test_key)
+        cache.delete(test_key)
+
+        if test_result != 'test':
+            raise Exception('Cache read/write test failed')
+
+        return jsonify({
+            'status': 'healthy',
+            'cache_type': cache_type,
+            'cache_url': cache.config.get('CACHE_REDIS_URL', 'N/A'),
+            'default_timeout': cache.config.get('CACHE_DEFAULT_TIMEOUT', 0),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 503

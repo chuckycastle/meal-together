@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
+from flask_caching import Cache
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -19,6 +20,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 socketio = SocketIO(cors_allowed_origins="*")
+cache = Cache()
 
 
 def create_app(config_name=None):
@@ -33,11 +35,17 @@ def create_app(config_name=None):
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 3600))
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = int(os.getenv('JWT_REFRESH_TOKEN_EXPIRES', 2592000))
 
+    # Cache configuration
+    app.config['CACHE_TYPE'] = 'redis'
+    app.config['CACHE_REDIS_URL'] = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    app.config['CACHE_DEFAULT_TIMEOUT'] = 300  # 5 minutes default
+
     # Initialize extensions with app
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
     socketio.init_app(app, async_mode='threading', cors_allowed_origins="*")
+    cache.init_app(app)
 
     # CORS configuration
     frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
