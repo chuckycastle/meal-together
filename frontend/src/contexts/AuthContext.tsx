@@ -3,7 +3,7 @@
  * Manages user authentication state and token handling
  */
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loadUser();
   }, []);
 
-  const login = async (credentials: LoginRequest): Promise<void> => {
+  const login = useCallback(async (credentials: LoginRequest): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await apiClient.login(credentials);
@@ -72,9 +72,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw error;
     }
     setIsLoading(false);
-  };
+  }, [navigate]);
 
-  const register = async (userData: RegisterRequest): Promise<void> => {
+  const register = useCallback(async (userData: RegisterRequest): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await apiClient.register(userData);
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw error;
     }
     setIsLoading(false);
-  };
+  }, [navigate]);
 
   const logout = useCallback(() => {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     navigate('/login');
   }, [navigate]);
 
-  const refreshUser = async (): Promise<void> => {
+  const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const userData = await apiClient.getCurrentUser();
       setUser(userData);
@@ -106,9 +106,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Failed to refresh user:', error);
       logout();
     }
-  };
+  }, [logout]);
 
-  const value: AuthContextValue = {
+  const value: AuthContextValue = useMemo(() => ({
     user,
     isAuthenticated: !!user,
     isLoading,
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     refreshUser,
-  };
+  }), [user, isLoading, login, register, logout, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
