@@ -4,6 +4,7 @@
  */
 
 import { io, Socket } from 'socket.io-client';
+import { throttle } from 'lodash-es';
 import type {
   WebSocketShoppingItemAddedEvent,
   WebSocketShoppingItemUpdatedEvent,
@@ -195,10 +196,11 @@ export class WebSocketService {
     this.socket.emit('leave_family', { family_id: familyId });
   }
 
-  sendTyping(familyId: number, location: string, itemId?: number): void {
+  // Throttled typing indicator - max once per 500ms
+  sendTyping = throttle((familyId: number, location: string, itemId?: number): void => {
     if (!this.socket) return;
     this.socket.emit('typing', { family_id: familyId, location, item_id: itemId });
-  }
+  }, 500);
 
   requestSync(familyId: number): void {
     if (!this.socket) return;

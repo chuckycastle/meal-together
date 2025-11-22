@@ -18,6 +18,7 @@ const TimelineSchedulerPage = lazy(() => import('./pages/timeline/TimelineSchedu
 const CookingSessionPage = lazy(() => import('./pages/cooking/CookingSessionPage'));
 const FamilyManagementPage = lazy(() => import('./pages/families/FamilyManagementPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
 // Loading component
 const PageLoader = () => (
@@ -25,9 +26,6 @@ const PageLoader = () => (
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
   </div>
 );
-
-// Placeholder pages
-const NotFoundPage = () => <div>404 - Page Not Found</div>;
 
 export const AppRoutes = () => {
   return (

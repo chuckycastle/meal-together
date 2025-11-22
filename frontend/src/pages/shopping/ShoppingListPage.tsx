@@ -47,27 +47,27 @@ export const ShoppingListPage = () => {
   const updateItem = useUpdateItem(activeFamily?.id || 0, activeList?.id || 0);
   const deleteItem = useDeleteItem(activeFamily?.id || 0, activeList?.id || 0);
 
-  // WebSocket event handlers
+  // WebSocket event handlers with debounced refetch
   useEffect(() => {
     if (!isConnected || !activeList) return;
 
-    const handleItemAdded = () => {
-      refetch();
+    // Debounce refetch to prevent multiple concurrent API calls
+    let refetchTimer: NodeJS.Timeout | null = null;
+    const debouncedRefetch = () => {
+      if (refetchTimer) clearTimeout(refetchTimer);
+      refetchTimer = setTimeout(() => refetch(), 300);
     };
 
-    const handleItemUpdated = () => {
-      refetch();
-    };
-
-    const handleItemDeleted = () => {
-      refetch();
-    };
+    const handleItemAdded = () => debouncedRefetch();
+    const handleItemUpdated = () => debouncedRefetch();
+    const handleItemDeleted = () => debouncedRefetch();
 
     const unsubscribeAdded = on('shopping_item_added', handleItemAdded);
     const unsubscribeUpdated = on('shopping_item_updated', handleItemUpdated);
     const unsubscribeDeleted = on('shopping_item_deleted', handleItemDeleted);
 
     return () => {
+      if (refetchTimer) clearTimeout(refetchTimer);
       unsubscribeAdded();
       unsubscribeUpdated();
       unsubscribeDeleted();
