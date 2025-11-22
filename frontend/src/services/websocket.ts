@@ -23,6 +23,9 @@ export class WebSocketService {
   private eventHandlers: Map<string, Set<WebSocketEventHandler>> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private lastToken: string | null = null;
+  private lastFamilyId: number | null = null;
+  private wasDisconnected = false;
 
   constructor() {
     this.connect();
@@ -49,12 +52,21 @@ export class WebSocketService {
 
     this.socket.on('connect', () => {
       console.log('WebSocket connected');
+      const isReconnection = this.wasDisconnected;
       this.reconnectAttempts = 0;
-      this.emit('connection_status', { connected: true });
+      this.wasDisconnected = false;
+      this.emit('connection_status', { connected: true, isReconnection });
+
+      // Auto-reauth and auto-rejoin on reconnection
+      if (isReconnection && this.lastToken) {
+        console.log('Auto-authenticating after reconnection');
+        this.socket?.emit('authenticate', { token: this.lastToken });
+      }
     });
 
     this.socket.on('disconnect', (reason) => {
       console.log('WebSocket disconnected:', reason);
+      this.wasDisconnected = true;
       this.emit('connection_status', { connected: false, reason });
     });
 
@@ -72,11 +84,18 @@ export class WebSocketService {
     this.socket.on('authenticated', (data) => {
       console.log('Authenticated:', data);
       this.emit('authenticated', data);
+
+      // Auto-rejoin family room after authentication
+      if (this.lastFamilyId !== null) {
+        console.log('Auto-rejoining family after reconnection');
+        this.socket?.emit('join_family', { family_id: this.lastFamilyId });
+      }
     });
 
     this.socket.on('joined_family', (data) => {
       console.log('Joined family:', data);
-      this.emit('joined_family', data);
+      const isRejoining = data.family_id === this.lastFamilyId;
+      this.emit('joined_family', { ...data, isRejoining });
     });
 
     this.socket.on('error', (data) => {
@@ -160,16 +179,19 @@ export class WebSocketService {
 
   authenticate(token: string): void {
     if (!this.socket) return;
+    this.lastToken = token; // Store for auto-reauth
     this.socket.emit('authenticate', { token });
   }
 
   joinFamily(familyId: number): void {
     if (!this.socket) return;
+    this.lastFamilyId = familyId; // Store for auto-rejoin
     this.socket.emit('join_family', { family_id: familyId });
   }
 
   leaveFamily(familyId: number): void {
     if (!this.socket) return;
+    this.lastFamilyId = null; // Clear stored family ID
     this.socket.emit('leave_family', { family_id: familyId });
   }
 
@@ -221,6 +243,8 @@ export class WebSocketService {
   }
 
   disconnect(): void {
+    this.lastToken = null;
+    this.lastFamilyId = null;
     this.socket?.disconnect();
   }
 
