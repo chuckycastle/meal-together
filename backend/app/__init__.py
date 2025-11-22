@@ -46,6 +46,7 @@ def create_app(config_name=None):
             "origins": [frontend_url],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
+            "expose_headers": ["Authorization", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
             "supports_credentials": True
         }
     })

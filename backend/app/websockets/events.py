@@ -144,7 +144,7 @@ def register_events(socketio):
         """Handle typing indicators (e.g., in shopping list)"""
         try:
             family_id = data.get('family_id')
-            user_id = getattr(request, 'sid_data', {}).get('user_id')
+            user_id = session.get('user_id')
 
             if not family_id or not user_id:
                 return
