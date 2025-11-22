@@ -64,6 +64,9 @@ class ShoppingListItem(BaseModel):
     notes = db.Column(db.Text)
     checked = db.Column(db.Boolean, default=False)
 
+    # Optimistic locking to prevent race conditions
+    version = db.Column(db.Integer, default=1, nullable=False)
+
     # Track who added and checked the item
     added_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     checked_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -84,6 +87,7 @@ class ShoppingListItem(BaseModel):
             'category': self.category,
             'notes': self.notes,
             'checked': self.checked,
+            'version': self.version,  # Include version for optimistic locking
             'added_by_id': self.added_by_id,
             'added_by': self.added_by.to_dict() if self.added_by else None,
             'checked_by_id': self.checked_by_id,

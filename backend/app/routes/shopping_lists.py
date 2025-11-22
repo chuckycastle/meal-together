@@ -181,7 +181,7 @@ def add_item(family_id, list_id):
     try:
         item.save()
 
-        # Broadcast new item (minimal payload - send only essential data)
+        # Broadcast new item (minimal payload - send only essential data with version)
         socketio.emit(
             'shopping_item_added',
             {
@@ -194,6 +194,7 @@ def add_item(family_id, list_id):
                 'checked': item.checked,
                 'added_by_id': item.added_by_id,
                 'checked_by_id': item.checked_by_id,
+                'version': item.version,  # Include version for optimistic locking
                 'created_at': item.created_at.isoformat() if item.created_at else None,
                 'updated_at': item.updated_at.isoformat() if item.updated_at else None
             },
@@ -212,7 +213,7 @@ def add_item(family_id, list_id):
 @bp.route('/<int:list_id>/items/<int:item_id>', methods=['PUT'])
 @family_member_required
 def update_item(family_id, list_id, item_id):
-    """Update shopping list item"""
+    """Update shopping list item with optimistic locking"""
     user_id = int(get_jwt_identity())
     item = ShoppingListItem.get_by_id(item_id)
 
@@ -220,6 +221,15 @@ def update_item(family_id, list_id, item_id):
         return jsonify({'error': 'Item not found'}), 404
 
     data = request.get_json()
+
+    # Optimistic locking: check version
+    if 'version' in data:
+        client_version = data['version']
+        if client_version != item.version:
+            return jsonify({
+                'error': 'Conflict: Item was modified by another user',
+                'current_item': item.to_dict()
+            }), 409
 
     if 'name' in data:
         item.name = data['name']
@@ -238,10 +248,13 @@ def update_item(family_id, list_id, item_id):
             item.checked_by_id = None
             item.checked_at = None
 
+    # Increment version for optimistic locking
+    item.version += 1
+
     try:
         item.save()
 
-        # Broadcast update (minimal payload - send only changed fields)
+        # Broadcast update (minimal payload - send only changed fields with version)
         socketio.emit(
             'shopping_item_updated',
             {
@@ -254,6 +267,7 @@ def update_item(family_id, list_id, item_id):
                 'checked': item.checked,
                 'checked_by_id': item.checked_by_id,
                 'checked_at': item.checked_at.isoformat() if item.checked_at else None,
+                'version': item.version,  # Include version for optimistic locking
                 'updated_at': item.updated_at.isoformat() if item.updated_at else None
             },
             room=f"family_{family_id}"
