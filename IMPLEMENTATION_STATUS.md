@@ -138,6 +138,19 @@
 - **Security Impact:** Prevents abuse, brute force attacks, and DDoS
 - **Deployed:** Commit `69f2f9d`
 
+**Issue #26: Implement Celery for Timer Service** - ✅ COMPLETE
+- Created Celery app with Redis broker (celery_app.py)
+- Added celery>=5.3.0 and redis>=5.0.0 to requirements.txt
+- Refactored timer service to use Celery tasks (app/services/timer_service.py)
+- Timer state persisted in ActiveTimer database model
+- complete_timer() Celery task for async timer completion
+- schedule_timer_completion() schedules tasks with countdown
+- Timer completion triggers WebSocket events to family room
+- Timers survive server restarts (state in PostgreSQL)
+- No more blocking time.sleep() calls
+- **Impact:** Production-ready timer service with persistence and reliability
+- **Deployed:** Already implemented in codebase
+
 ### Phase 6: Critical Bug Fixes
 **Issue #24: Fix WebSocket Import and Session Issues** - ✅ COMPLETE
 - Fixed datetime import in events.py (already present)
