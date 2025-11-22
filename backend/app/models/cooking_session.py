@@ -100,9 +100,13 @@ class ActiveTimer(BaseModel):
         if self.is_paused:
             return self.remaining_time or 0
 
-        # Calculate based on elapsed time
+        # Calculate based on elapsed time since last start/resume
         elapsed = (datetime.utcnow() - self.started_at).total_seconds()
-        remaining = self.duration - int(elapsed)
+
+        # If timer was previously paused and resumed, use remaining_time as the base
+        # Otherwise use original duration
+        base_duration = self.remaining_time if self.remaining_time is not None and not self.is_paused else self.duration
+        remaining = base_duration - int(elapsed)
         return max(0, remaining)
 
     def to_dict(self):

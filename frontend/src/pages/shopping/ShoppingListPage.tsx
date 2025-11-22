@@ -51,11 +51,18 @@ export const ShoppingListPage = () => {
   useEffect(() => {
     if (!isConnected || !activeList) return;
 
+    // Track if component is mounted to prevent state updates after unmount
+    let isMounted = true;
+
     // Debounce refetch to prevent multiple concurrent API calls
-    let refetchTimer: NodeJS.Timeout | null = null;
+    let refetchTimer: ReturnType<typeof setTimeout> | null = null;
     const debouncedRefetch = () => {
       if (refetchTimer) clearTimeout(refetchTimer);
-      refetchTimer = setTimeout(() => refetch(), 300);
+      refetchTimer = setTimeout(() => {
+        if (isMounted) {
+          refetch();
+        }
+      }, 300);
     };
 
     const handleItemAdded = () => debouncedRefetch();
@@ -67,6 +74,7 @@ export const ShoppingListPage = () => {
     const unsubscribeDeleted = on('shopping_item_deleted', handleItemDeleted);
 
     return () => {
+      isMounted = false;
       if (refetchTimer) clearTimeout(refetchTimer);
       unsubscribeAdded();
       unsubscribeUpdated();
@@ -87,9 +95,30 @@ export const ShoppingListPage = () => {
   };
 
   const handleToggleItem = async (itemId: number, checked: boolean) => {
+    // Get current item to include version for optimistic locking
+    const currentItem = shoppingList?.items?.find(item => item.id === itemId);
+    if (!currentItem) {
+      console.error('Item not found:', itemId);
+      return;
+    }
+
     setUpdatingItems((prev) => new Set(prev).add(itemId));
     try {
-      await updateItem.mutateAsync({ itemId, data: { checked } });
+      await updateItem.mutateAsync({
+        itemId,
+        data: {
+          checked,
+          version: currentItem.version // Include version for optimistic locking
+        }
+      });
+    } catch (error: any) {
+      // Handle 409 Conflict - item was modified by another user
+      if (error?.response?.status === 409) {
+        alert('This item was just modified by another user. Refreshing...');
+        refetch(); // Refetch to get latest data
+      } else {
+        console.error('Error updating item:', error);
+      }
     } finally {
       setUpdatingItems((prev) => {
         const next = new Set(prev);

@@ -9,6 +9,7 @@ from app import db, socketio
 from app.models.shopping_list import ShoppingList, ShoppingListItem
 from app.utils.decorators import family_member_required
 from app.utils.pagination import get_pagination_params, paginate_query, create_paginated_response
+from app.utils.caching import invalidate_shopping_list_cache
 
 bp = Blueprint('shopping_lists', __name__, url_prefix='/api/families/<int:family_id>/shopping-lists')
 
@@ -26,6 +27,9 @@ def create_shopping_list(family_id):
 
     try:
         shopping_list.save()
+
+        # Invalidate cache
+        invalidate_shopping_list_cache(family_id)
 
         # Broadcast to family room (minimal payload)
         socketio.emit(
@@ -108,6 +112,9 @@ def update_shopping_list(family_id, list_id):
     try:
         shopping_list.save()
 
+        # Invalidate cache
+        invalidate_shopping_list_cache(family_id)
+
         # Broadcast update (minimal payload - don't include full items array)
         socketio.emit(
             'shopping_list_updated',
@@ -140,6 +147,9 @@ def delete_shopping_list(family_id, list_id):
 
     try:
         shopping_list.delete()
+
+        # Invalidate cache
+        invalidate_shopping_list_cache(family_id)
 
         # Broadcast deletion
         socketio.emit(
@@ -180,6 +190,9 @@ def add_item(family_id, list_id):
 
     try:
         item.save()
+
+        # Invalidate cache
+        invalidate_shopping_list_cache(family_id)
 
         # Broadcast new item (minimal payload - send only essential data with version)
         socketio.emit(
@@ -254,6 +267,9 @@ def update_item(family_id, list_id, item_id):
     try:
         item.save()
 
+        # Invalidate cache
+        invalidate_shopping_list_cache(family_id)
+
         # Broadcast update (minimal payload - send only changed fields with version)
         socketio.emit(
             'shopping_item_updated',
@@ -293,6 +309,9 @@ def delete_item(family_id, list_id, item_id):
 
     try:
         item.delete()
+
+        # Invalidate cache
+        invalidate_shopping_list_cache(family_id)
 
         # Broadcast deletion
         socketio.emit(
@@ -336,6 +355,9 @@ def bulk_add_items(family_id, list_id):
             )
             item.save()
             added_items.append(item.to_dict())
+
+        # Invalidate cache
+        invalidate_shopping_list_cache(family_id)
 
         # Broadcast bulk add
         socketio.emit(

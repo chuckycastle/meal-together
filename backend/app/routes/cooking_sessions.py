@@ -283,10 +283,13 @@ def resume_timer(family_id, session_id, timer_id):
     if not timer.is_paused:
         return jsonify({'error': 'Timer is not paused'}), 400
 
-    # Reset timer with remaining time
+    # Store remaining time for rescheduling (don't modify duration field)
+    remaining = timer.remaining_time or 0
+
+    # Reset timer start time and clear pause state
     timer.started_at = datetime.utcnow()
     timer.paused_at = None
-    timer.duration = timer.remaining_time
+    # Keep remaining_time for calculation purposes but reset started_at
 
     try:
         timer.save()
@@ -302,9 +305,9 @@ def resume_timer(family_id, session_id, timer_id):
             room=f"family_{family_id}"
         )
 
-        # Reschedule completion
+        # Reschedule completion with remaining time (not modified duration)
         from app.services.timer_service import schedule_timer_completion
-        schedule_timer_completion(timer.id, timer.duration, family_id)
+        schedule_timer_completion(timer.id, remaining, family_id)
 
         return jsonify({
             'message': 'Timer resumed',

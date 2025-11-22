@@ -199,6 +199,7 @@ export interface ShoppingListItem {
   category?: string;
   notes?: string;
   checked: boolean;
+  version: number; // For optimistic locking
   added_by_id: number;
   added_by?: User;
   checked_by_id?: number;

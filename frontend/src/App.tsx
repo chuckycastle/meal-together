@@ -9,6 +9,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { queryClient } from './lib/queryClient';
 import { AppRoutes } from './router';
 import { ErrorBoundary } from './components/ui';
+import { WebSocketErrorNotification } from './components/ui/WebSocketErrorNotification';
 import { AuthProvider } from './contexts/AuthContext';
 import { FamilyProvider } from './contexts/FamilyContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
@@ -31,6 +32,7 @@ function App() {
             <FamilyProvider>
               <WebSocketProvider>
                 <AppRoutes />
+                <WebSocketErrorNotification />
               </WebSocketProvider>
             </FamilyProvider>
           </AuthProvider>

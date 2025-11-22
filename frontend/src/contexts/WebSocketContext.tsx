@@ -8,8 +8,16 @@ import type { ReactNode } from 'react';
 import { websocketService } from '../services/websocket';
 import type { WebSocketEventHandler } from '../services/websocket';
 
+interface WebSocketError {
+  message: string;
+  timestamp: number;
+  reconnectAttempts?: number;
+}
+
 interface WebSocketContextValue {
   isConnected: boolean;
+  error: WebSocketError | null;
+  clearError: () => void;
   connect: () => void;
   disconnect: () => void;
   authenticate: (token: string) => void;
@@ -29,11 +37,34 @@ interface WebSocketProviderProps {
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(websocketService.isConnected());
+  const [error, setError] = useState<WebSocketError | null>(null);
 
   useEffect(() => {
     // Listen for connection status changes
     const unsubscribeStatus = websocketService.on('connection_status', (data: { connected: boolean }) => {
       setIsConnected(data.connected);
+
+      // Clear error when reconnected
+      if (data.connected && error) {
+        setError(null);
+      }
+    });
+
+    // Listen for connection errors
+    const unsubscribeError = websocketService.on('connection_error', (data: { error: any; attempts: number }) => {
+      setError({
+        message: 'Unable to connect to server. Retrying...',
+        timestamp: Date.now(),
+        reconnectAttempts: data.attempts,
+      });
+    });
+
+    // Listen for WebSocket errors
+    const unsubscribeWSError = websocketService.on('error', (data: { error?: string; message?: string }) => {
+      setError({
+        message: data.error || data.message || 'WebSocket error occurred',
+        timestamp: Date.now(),
+      });
     });
 
     // Auto-connect on mount
@@ -44,11 +75,19 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     // Cleanup on unmount
     return () => {
       unsubscribeStatus();
+      unsubscribeError();
+      unsubscribeWSError();
     };
-  }, []);
+  }, [error]);
+
+  const clearError = () => {
+    setError(null);
+  };
 
   const value: WebSocketContextValue = {
     isConnected,
+    error,
+    clearError,
     connect: () => websocketService.connectSocket(),
     disconnect: () => websocketService.disconnect(),
     authenticate: (token: string) => websocketService.authenticate(token),

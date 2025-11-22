@@ -4,11 +4,11 @@
  */
 
 import { useMemo } from 'react';
-import { throttle } from 'lodash-es';
+import { throttle, type DebouncedFunc } from 'lodash-es';
 
 export function useThrottle<T extends (...args: any[]) => any>(
   callback: T,
   delay: number
-): T {
-  return useMemo(() => throttle(callback, delay) as T, [callback, delay]);
+): DebouncedFunc<T> {
+  return useMemo(() => throttle(callback, delay), [callback, delay]);
 }

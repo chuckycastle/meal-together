@@ -48,7 +48,7 @@ export const useUpdateItem = (familyId: number, listId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ itemId, data }: { itemId: number; data: Partial<AddShoppingListItemRequest> & { checked?: boolean } }) =>
+    mutationFn: ({ itemId, data }: { itemId: number; data: Partial<AddShoppingListItemRequest> & { checked?: boolean; version?: number } }) =>
       apiClient.updateShoppingItem(familyId, listId, itemId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shoppingLists', familyId, listId] });
