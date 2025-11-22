@@ -3,6 +3,7 @@
  * Displays recipe summary in card format
  */
 
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Recipe } from '../../types';
 
@@ -10,7 +11,7 @@ interface RecipeCardProps {
   recipe: Recipe;
 }
 
-export const RecipeCard = ({ recipe }: RecipeCardProps) => {
+export const RecipeCard = memo(({ recipe }: RecipeCardProps) => {
   return (
     <Link
       to={`/recipes/${recipe.id}`}
@@ -99,4 +100,6 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
       </div>
     </Link>
   );
-};
+});
+
+RecipeCard.displayName = 'RecipeCard';

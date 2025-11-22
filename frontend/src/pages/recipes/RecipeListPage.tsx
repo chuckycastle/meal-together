@@ -108,3 +108,5 @@ export const RecipeListPage = () => {
     </Layout>
   );
 };
+
+export default RecipeListPage;

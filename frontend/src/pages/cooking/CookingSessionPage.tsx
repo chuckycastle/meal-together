@@ -351,3 +351,5 @@ export const CookingSessionPage = () => {
     </Layout>
   );
 };
+
+export default CookingSessionPage;

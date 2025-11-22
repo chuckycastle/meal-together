@@ -3,7 +3,7 @@
  * Single shopping list item with checkbox
  */
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { ShoppingListItem } from '../../types';
 
 interface ShoppingItemProps {
@@ -13,7 +13,7 @@ interface ShoppingItemProps {
   isUpdating?: boolean;
 }
 
-export const ShoppingItem = ({ item, onToggle, onDelete, isUpdating }: ShoppingItemProps) => {
+export const ShoppingItem = memo(({ item, onToggle, onDelete, isUpdating }: ShoppingItemProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -98,4 +98,6 @@ export const ShoppingItem = ({ item, onToggle, onDelete, isUpdating }: ShoppingI
       </button>
     </div>
   );
-};
+});
+
+ShoppingItem.displayName = 'ShoppingItem';

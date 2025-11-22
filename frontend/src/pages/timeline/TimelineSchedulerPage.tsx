@@ -353,3 +353,5 @@ export const TimelineSchedulerPage = () => {
     </Layout>
   );
 };
+
+export default TimelineSchedulerPage;

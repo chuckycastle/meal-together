@@ -313,3 +313,5 @@ export const RecipeFormPage = () => {
     </div>
   );
 };
+
+export default RecipeFormPage;

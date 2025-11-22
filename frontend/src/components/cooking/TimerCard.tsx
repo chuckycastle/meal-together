@@ -3,7 +3,7 @@
  * Individual timer display with controls
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import type { ActiveTimer } from '../../types';
 
 interface TimerCardProps {
@@ -15,7 +15,7 @@ interface TimerCardProps {
   isUpdating?: boolean;
 }
 
-export const TimerCard = ({
+export const TimerCard = memo(({
   timer,
   onStart,
   onPause,
@@ -203,4 +203,6 @@ export const TimerCard = ({
       )}
     </div>
   );
-};
+});
+
+TimerCard.displayName = 'TimerCard';

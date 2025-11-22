@@ -337,3 +337,5 @@ export const RecipeDetailPage = () => {
     </Layout>
   );
 };
+
+export default RecipeDetailPage;

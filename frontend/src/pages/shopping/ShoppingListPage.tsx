@@ -277,3 +277,5 @@ export const ShoppingListPage = () => {
     </Layout>
   );
 };
+
+export default ShoppingListPage;
