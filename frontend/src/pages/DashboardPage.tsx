@@ -3,6 +3,7 @@
  * Main application dashboard with overview
  */
 
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
@@ -75,8 +76,16 @@ export const DashboardPage = () => {
     );
   }
 
-  const activeShoppingList = shoppingLists.find(list => list.is_active);
-  const completedItems = activeShoppingList?.items?.filter(item => item.checked).length || 0;
+  const activeShoppingList = useMemo(() =>
+    shoppingLists.find(list => list.is_active),
+    [shoppingLists]
+  );
+
+  const completedItems = useMemo(() =>
+    activeShoppingList?.items?.filter(item => item.checked).length || 0,
+    [activeShoppingList]
+  );
+
   const totalItems = activeShoppingList?.items?.length || 0;
 
   return (

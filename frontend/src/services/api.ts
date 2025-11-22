@@ -253,9 +253,10 @@ class ApiClient {
   // Recipes
   // ============================================================================
 
-  async getRecipes(familyId: number): Promise<Recipe[]> {
-    const response = await this.client.get<{ recipes: Recipe[] }>(
-      `/api/families/${familyId}/recipes`
+  async getRecipes(familyId: number, page: number = 1, perPage: number = 50): Promise<Recipe[]> {
+    const response = await this.client.get<{ recipes: Recipe[]; pagination?: any }>(
+      `/api/families/${familyId}/recipes`,
+      { params: { page, per_page: perPage } }
     );
     return response.data.recipes;
   }
@@ -303,10 +304,10 @@ class ApiClient {
   // Shopping Lists
   // ============================================================================
 
-  async getShoppingLists(familyId: number, activeOnly: boolean = true): Promise<ShoppingList[]> {
-    const response = await this.client.get<{ shopping_lists: ShoppingList[] }>(
+  async getShoppingLists(familyId: number, activeOnly: boolean = true, page: number = 1, perPage: number = 50): Promise<ShoppingList[]> {
+    const response = await this.client.get<{ shopping_lists: ShoppingList[]; pagination?: any }>(
       `/api/families/${familyId}/shopping-lists`,
-      { params: { active_only: activeOnly } }
+      { params: { active_only: activeOnly, page, per_page: perPage } }
     );
     return response.data.shopping_lists;
   }

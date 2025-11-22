@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from app import db
 from app.models.recipe import Recipe, Ingredient, CookingStep, RecipeTimer
 from app.utils.decorators import family_member_required
+from app.utils.pagination import get_pagination_params, paginate_query, create_paginated_response
 
 bp = Blueprint('recipes', __name__, url_prefix='/api/families/<int:family_id>/recipes')
 
@@ -80,13 +81,22 @@ def create_recipe(family_id):
 @bp.route('', methods=['GET'])
 @family_member_required
 def get_recipes(family_id):
-    """Get all recipes for a family"""
-    recipes = Recipe.query.options(
+    """Get all recipes for a family with pagination"""
+    # Get pagination parameters
+    params = get_pagination_params()
+
+    # Build query with eager loading
+    query = Recipe.query.options(
         joinedload(Recipe.assigned_to)
-    ).filter_by(family_id=family_id).all()
-    return jsonify({
-        'recipes': [r.to_dict() for r in recipes]
-    }), 200
+    ).filter_by(family_id=family_id).order_by(Recipe.created_at.desc())
+
+    # Paginate results
+    result = paginate_query(query, params['page'], params['per_page'])
+
+    # Serialize items
+    recipes = [r.to_dict() for r in result['items']]
+
+    return create_paginated_response(recipes, result['pagination'], 'recipes')
 
 
 @bp.route('/<int:recipe_id>', methods=['GET'])

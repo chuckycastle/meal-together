@@ -3,7 +3,7 @@
  * Collaborative shopping list with real-time updates
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useWebSocket } from '../../contexts/WebSocketContext';
 import {
@@ -165,17 +165,20 @@ export const ShoppingListPage = () => {
   const items = shoppingList?.items || [];
 
   // Group items by category
-  const itemsByCategory = items.reduce((acc, item) => {
-    const category = item.category || 'Uncategorized';
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(item);
-    return acc;
-  }, {} as Record<string, ShoppingListItem[]>);
+  const itemsByCategory = useMemo(() =>
+    items.reduce((acc, item) => {
+      const category = item.category || 'Uncategorized';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    }, {} as Record<string, ShoppingListItem[]>),
+    [items]
+  );
 
-  const categories = Object.keys(itemsByCategory).sort();
-  const completedCount = items.filter((item) => item.checked).length;
+  const categories = useMemo(() => Object.keys(itemsByCategory).sort(), [itemsByCategory]);
+  const completedCount = useMemo(() => items.filter((item) => item.checked).length, [items]);
   const totalCount = items.length;
   const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 

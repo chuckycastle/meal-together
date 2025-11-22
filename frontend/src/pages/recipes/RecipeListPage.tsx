@@ -3,7 +3,7 @@
  * Browse and search family recipes
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useRecipes } from '../../hooks/useRecipes';
@@ -20,8 +20,11 @@ export const RecipeListPage = () => {
   );
 
   // Filter recipes by search query
-  const filteredRecipes = recipes.filter((recipe) =>
-    recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredRecipes = useMemo(() =>
+    recipes.filter((recipe) =>
+      recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [recipes, searchQuery]
   );
 
   if (!activeFamily) {

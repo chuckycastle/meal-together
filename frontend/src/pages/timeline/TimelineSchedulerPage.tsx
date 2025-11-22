@@ -154,8 +154,11 @@ export const TimelineSchedulerPage = () => {
     );
   }
 
-  const availableRecipes = recipes.filter(
-    (recipe) => !selectedRecipes.some((r) => r.id === recipe.id)
+  const availableRecipes = useMemo(() =>
+    recipes.filter(
+      (recipe) => !selectedRecipes.some((r) => r.id === recipe.id)
+    ),
+    [recipes, selectedRecipes]
   );
 
   return (

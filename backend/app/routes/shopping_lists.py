@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload, selectinload
 from app import db, socketio
 from app.models.shopping_list import ShoppingList, ShoppingListItem
 from app.utils.decorators import family_member_required
+from app.utils.pagination import get_pagination_params, paginate_query, create_paginated_response
 
 bp = Blueprint('shopping_lists', __name__, url_prefix='/api/families/<int:family_id>/shopping-lists')
 
@@ -45,21 +46,26 @@ def create_shopping_list(family_id):
 @bp.route('', methods=['GET'])
 @family_member_required
 def get_shopping_lists(family_id):
-    """Get all shopping lists for a family"""
+    """Get all shopping lists for a family with pagination"""
+    # Get pagination parameters
+    params = get_pagination_params()
+
     # Get active lists by default, or all if specified
     query = ShoppingList.query.options(
         selectinload(ShoppingList.items).joinedload(ShoppingListItem.added_by),
         selectinload(ShoppingList.items).joinedload(ShoppingListItem.checked_by)
-    ).filter_by(family_id=family_id)
+    ).filter_by(family_id=family_id).order_by(ShoppingList.created_at.desc())
 
     if request.args.get('active_only', 'true').lower() == 'true':
         query = query.filter_by(is_active=True)
 
-    shopping_lists = query.all()
+    # Paginate results
+    result = paginate_query(query, params['page'], params['per_page'])
 
-    return jsonify({
-        'shopping_lists': [sl.to_dict(include_items=True) for sl in shopping_lists]
-    }), 200
+    # Serialize items
+    shopping_lists = [sl.to_dict(include_items=True) for sl in result['items']]
+
+    return create_paginated_response(shopping_lists, result['pagination'], 'shopping_lists')
 
 
 @bp.route('/<int:list_id>', methods=['GET'])
