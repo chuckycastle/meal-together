@@ -27,10 +27,16 @@ def create_shopping_list(family_id):
     try:
         shopping_list.save()
 
-        # Broadcast to family room
+        # Broadcast to family room (minimal payload)
         socketio.emit(
             'shopping_list_created',
-            shopping_list.to_dict(),
+            {
+                'id': shopping_list.id,
+                'name': shopping_list.name,
+                'family_id': shopping_list.family_id,
+                'is_active': shopping_list.is_active,
+                'created_at': shopping_list.created_at.isoformat() if shopping_list.created_at else None
+            },
             room=f"family_{family_id}"
         )
 
@@ -102,10 +108,15 @@ def update_shopping_list(family_id, list_id):
     try:
         shopping_list.save()
 
-        # Broadcast update
+        # Broadcast update (minimal payload - don't include full items array)
         socketio.emit(
             'shopping_list_updated',
-            shopping_list.to_dict(include_items=True),
+            {
+                'id': shopping_list.id,
+                'name': shopping_list.name,
+                'is_active': shopping_list.is_active,
+                'updated_at': shopping_list.updated_at.isoformat() if shopping_list.updated_at else None
+            },
             room=f"family_{family_id}"
         )
 
@@ -170,10 +181,22 @@ def add_item(family_id, list_id):
     try:
         item.save()
 
-        # Broadcast new item
+        # Broadcast new item (minimal payload - send only essential data)
         socketio.emit(
             'shopping_item_added',
-            item.to_dict(),
+            {
+                'id': item.id,
+                'shopping_list_id': item.shopping_list_id,
+                'name': item.name,
+                'quantity': item.quantity,
+                'category': item.category,
+                'notes': item.notes,
+                'checked': item.checked,
+                'added_by_id': item.added_by_id,
+                'checked_by_id': item.checked_by_id,
+                'created_at': item.created_at.isoformat() if item.created_at else None,
+                'updated_at': item.updated_at.isoformat() if item.updated_at else None
+            },
             room=f"family_{family_id}"
         )
 
@@ -218,10 +241,21 @@ def update_item(family_id, list_id, item_id):
     try:
         item.save()
 
-        # Broadcast update
+        # Broadcast update (minimal payload - send only changed fields)
         socketio.emit(
             'shopping_item_updated',
-            item.to_dict(),
+            {
+                'id': item.id,
+                'shopping_list_id': item.shopping_list_id,
+                'name': item.name,
+                'quantity': item.quantity,
+                'category': item.category,
+                'notes': item.notes,
+                'checked': item.checked,
+                'checked_by_id': item.checked_by_id,
+                'checked_at': item.checked_at.isoformat() if item.checked_at else None,
+                'updated_at': item.updated_at.isoformat() if item.updated_at else None
+            },
             room=f"family_{family_id}"
         )
 

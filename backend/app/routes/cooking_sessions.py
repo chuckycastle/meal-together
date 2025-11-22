@@ -88,10 +88,20 @@ def start_cooking_session(family_id):
     try:
         session.save()
 
-        # Broadcast session started
+        # Broadcast session started (minimal payload - no nested recipe/user objects)
         socketio.emit(
             'cooking_session_started',
-            session.to_dict(),
+            {
+                'id': session.id,
+                'recipe_id': session.recipe_id,
+                'recipe_name': session.recipe.name if session.recipe else None,
+                'family_id': session.family_id,
+                'started_by_id': session.started_by_id,
+                'target_time': session.target_time.isoformat() if session.target_time else None,
+                'actual_start_time': session.actual_start_time.isoformat() if session.actual_start_time else None,
+                'is_active': session.is_active,
+                'created_at': session.created_at.isoformat() if session.created_at else None
+            },
             room=f"family_{family_id}"
         )
 
@@ -152,10 +162,17 @@ def complete_session(family_id, session_id):
                 timer.is_active = False
                 timer.save()
 
-        # Broadcast completion
+        # Broadcast completion (minimal payload - no nested objects)
         socketio.emit(
             'cooking_session_completed',
-            session.to_dict(include_timers=True),
+            {
+                'id': session.id,
+                'recipe_id': session.recipe_id,
+                'family_id': session.family_id,
+                'completed_at': session.completed_at.isoformat() if session.completed_at else None,
+                'is_active': session.is_active,
+                'duration': session.duration
+            },
             room=f"family_{family_id}"
         )
 

@@ -50,7 +50,9 @@ def register_events(socketio):
             session['user_id'] = user_id
 
             emit('authenticated', {
-                'user': user.to_dict(),
+                'user_id': user.id,
+                'user_name': user.name,
+                'user_email': user.email,
                 'message': 'Successfully authenticated'
             })
 
@@ -84,12 +86,12 @@ def register_events(socketio):
             room = f"family_{family_id}"
             join_room(room)
 
-            # Send current state
+            # Send current state (minimal payload - frontend already has family data)
             active_timers = get_all_active_timers(family_id)
 
             emit('joined_family', {
                 'family_id': family_id,
-                'family': family.to_dict(),
+                'family_name': family.name,
                 'active_timers': active_timers,
                 'message': f'Joined family: {family.name}'
             })
@@ -151,9 +153,10 @@ def register_events(socketio):
 
             user = User.get_by_id(user_id)
 
-            # Broadcast to family (excluding sender)
+            # Broadcast to family (excluding sender) - minimal payload
             emit('user_typing', {
-                'user': user.to_dict(),
+                'user_id': user_id,
+                'user_name': user.name,
                 'location': data.get('location'),  # e.g., 'shopping_list', 'recipe'
                 'item_id': data.get('item_id')
             }, room=f"family_{family_id}", skip_sid=request.sid)
