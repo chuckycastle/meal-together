@@ -3,6 +3,7 @@ Recipe management routes
 """
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.orm import joinedload, selectinload
 from app import db
 from app.models.recipe import Recipe, Ingredient, CookingStep, RecipeTimer
 from app.utils.decorators import family_member_required
@@ -80,7 +81,9 @@ def create_recipe(family_id):
 @family_member_required
 def get_recipes(family_id):
     """Get all recipes for a family"""
-    recipes = Recipe.query.filter_by(family_id=family_id).all()
+    recipes = Recipe.query.options(
+        joinedload(Recipe.assigned_to)
+    ).filter_by(family_id=family_id).all()
     return jsonify({
         'recipes': [r.to_dict() for r in recipes]
     }), 200
@@ -90,7 +93,12 @@ def get_recipes(family_id):
 @family_member_required
 def get_recipe(family_id, recipe_id):
     """Get recipe details"""
-    recipe = Recipe.get_by_id(recipe_id)
+    recipe = Recipe.query.options(
+        joinedload(Recipe.assigned_to),
+        selectinload(Recipe.ingredients),
+        selectinload(Recipe.steps),
+        selectinload(Recipe.timers)
+    ).filter_by(id=recipe_id).first()
 
     if not recipe or recipe.family_id != family_id:
         return jsonify({'error': 'Recipe not found'}), 404

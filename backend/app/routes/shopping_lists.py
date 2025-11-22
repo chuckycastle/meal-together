@@ -4,6 +4,7 @@ Shopping list management routes
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.orm import joinedload, selectinload
 from app import db, socketio
 from app.models.shopping_list import ShoppingList, ShoppingListItem
 from app.utils.decorators import family_member_required
@@ -46,7 +47,10 @@ def create_shopping_list(family_id):
 def get_shopping_lists(family_id):
     """Get all shopping lists for a family"""
     # Get active lists by default, or all if specified
-    query = ShoppingList.query.filter_by(family_id=family_id)
+    query = ShoppingList.query.options(
+        selectinload(ShoppingList.items).joinedload(ShoppingListItem.added_by),
+        selectinload(ShoppingList.items).joinedload(ShoppingListItem.checked_by)
+    ).filter_by(family_id=family_id)
 
     if request.args.get('active_only', 'true').lower() == 'true':
         query = query.filter_by(is_active=True)
@@ -62,7 +66,10 @@ def get_shopping_lists(family_id):
 @family_member_required
 def get_shopping_list(family_id, list_id):
     """Get shopping list details"""
-    shopping_list = ShoppingList.get_by_id(list_id)
+    shopping_list = ShoppingList.query.options(
+        selectinload(ShoppingList.items).joinedload(ShoppingListItem.added_by),
+        selectinload(ShoppingList.items).joinedload(ShoppingListItem.checked_by)
+    ).filter_by(id=list_id).first()
 
     if not shopping_list or shopping_list.family_id != family_id:
         return jsonify({'error': 'Shopping list not found'}), 404

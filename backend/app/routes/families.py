@@ -3,6 +3,7 @@ Family management routes
 """
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.orm import joinedload, selectinload
 from app import db
 from app.models.family import Family, FamilyMember, FamilyRole
 from app.models.user import User
@@ -51,10 +52,12 @@ def create_family():
 @jwt_required()
 def get_families():
     """Get all families for current user"""
-    user_id = int(get_jwt_identity())
+    user_id = get_jwt_identity()
 
-    # Get all family memberships
-    memberships = FamilyMember.query.filter_by(user_id=user_id).all()
+    # Get all family memberships with eager loading
+    memberships = FamilyMember.query.options(
+        joinedload(FamilyMember.family).selectinload(Family.members).joinedload(FamilyMember.user)
+    ).filter_by(user_id=user_id).all()
     families = [m.family.to_dict(include_members=True) for m in memberships]
 
     return jsonify({'families': families}), 200
