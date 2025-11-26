@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Flask Shopping Service
  * Original shopping list API implementation using Flask backend

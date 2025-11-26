@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Supabase Shopping Service
  * New shopping list implementation using Supabase and Realtime

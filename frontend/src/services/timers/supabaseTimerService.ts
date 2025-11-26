@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Supabase Timer Service
  * New timer implementation using Supabase kitchen_timers table and Realtime

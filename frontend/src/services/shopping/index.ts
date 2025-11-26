@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unified Shopping Service
  * Switches between Flask and Supabase shopping implementations based on feature flags

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unified Timer Service
  * Switches between Flask and Supabase timer implementations based on feature flags

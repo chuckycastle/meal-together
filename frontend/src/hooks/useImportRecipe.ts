@@ -4,12 +4,11 @@
 
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
+import { authService } from '../services/auth';
 import { useFamily } from '../contexts/FamilyContext';
 import type {
   ImportRecipeRequest,
   ImportResponse,
-  ImportRecipeError,
 } from '../types/recipe-import';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -20,8 +19,7 @@ interface UseImportRecipeOptions {
 }
 
 export function useImportRecipe(options?: UseImportRecipeOptions) {
-  const { token } = useAuth();
-  const { currentFamily } = useFamily();
+  const { activeFamily } = useFamily();
 
   const mutation = useMutation<
     ImportResponse,
@@ -29,16 +27,17 @@ export function useImportRecipe(options?: UseImportRecipeOptions) {
     ImportRecipeRequest
   >({
     mutationFn: async (request: ImportRecipeRequest) => {
-      if (!currentFamily) {
+      if (!activeFamily) {
         throw new Error('No family selected');
       }
 
+      const token = authService.getAccessToken();
       if (!token) {
         throw new Error('Not authenticated');
       }
 
       const response = await axios.post<ImportResponse>(
-        `${API_URL}/api/families/${currentFamily.id}/recipes/import`,
+        `${API_URL}/api/families/${activeFamily.id}/recipes/import`,
         request,
         {
           headers: {

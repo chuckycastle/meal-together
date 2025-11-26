@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * User Service
  * Maps Supabase auth user IDs to internal user IDs

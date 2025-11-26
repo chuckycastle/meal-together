@@ -30,10 +30,11 @@ export const supabaseAuthService = {
 
     // Map to our User type with internal ID
     const user: User = {
-      id: internalUser.id, // Use internal users.id, not auth.users.id
+      id: parseInt(internalUser.id, 10), // Convert string ID to number
       email: internalUser.email,
       first_name: internalUser.first_name,
       last_name: internalUser.last_name,
+      full_name: `${internalUser.first_name} ${internalUser.last_name}`,
       is_active: true,
       created_at: data.user.created_at,
       updated_at: data.user.updated_at || data.user.created_at,
@@ -72,10 +73,11 @@ export const supabaseAuthService = {
     );
 
     const user: User = {
-      id: internalUserId, // Use internal users.id, not auth.users.id
+      id: parseInt(internalUserId, 10), // Convert string ID to number
       email: userData.email,
       first_name: userData.first_name,
       last_name: userData.last_name,
+      full_name: `${userData.first_name} ${userData.last_name}`,
       is_active: true,
       created_at: data.user.created_at,
       updated_at: data.user.updated_at || data.user.created_at,
@@ -109,10 +111,11 @@ export const supabaseAuthService = {
     const internalUser = await userService.getInternalUser();
 
     const user: User = {
-      id: internalUser.id, // Use internal users.id, not auth.users.id
+      id: parseInt(internalUser.id, 10), // Convert string ID to number
       email: internalUser.email,
       first_name: internalUser.first_name,
       last_name: internalUser.last_name,
+      full_name: `${internalUser.first_name} ${internalUser.last_name}`,
       is_active: true,
       created_at: session.user.created_at,
       updated_at: session.user.updated_at || session.user.created_at,

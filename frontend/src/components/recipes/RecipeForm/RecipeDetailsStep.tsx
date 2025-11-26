@@ -8,7 +8,6 @@ import type { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from
 import type { RecipeFormValues } from '../../../schemas/recipeSchema';
 import { useImportRecipe } from '../../../hooks/useImportRecipe';
 import { featureFlags } from '../../../config/featureFlags';
-import type { ImportedRecipe } from '../../../types/recipe-import';
 
 interface RecipeDetailsStepProps {
   register: UseFormRegister<RecipeFormValues>;

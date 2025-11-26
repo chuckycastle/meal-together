@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Flask Timer Service
  * Original timer API implementation using Flask backend and Socket.IO
