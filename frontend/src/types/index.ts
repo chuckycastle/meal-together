@@ -292,6 +292,59 @@ export interface StartTimerRequest {
 }
 
 // ============================================================================
+// Kitchen Timers (Supabase Realtime)
+// ============================================================================
+
+export interface KitchenTimer {
+  id: string;
+  family_id: string;
+  session_id: string | null;
+  name: string;
+  default_seconds: number;
+  remaining_seconds: number;
+  status: 'idle' | 'running' | 'paused' | 'finished';
+  assigned_to_id: string | null;
+  started_by_id: string | null;
+  end_at: string | null;
+  last_sync_at: string | null;
+  sync_source: string | null;
+  channel_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================================
+// Supabase Realtime Types
+// ============================================================================
+
+export interface RealtimePayload<T> {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: T | null;
+  old: T | null;
+  schema: string;
+  table: string;
+  commit_timestamp: string;
+}
+
+export interface RealtimeChannel {
+  subscribe: () => void;
+  unsubscribe: () => void;
+}
+
+export type RealtimeStatus =
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+  | 'error';
+
+export interface RealtimeConnectionInfo {
+  status: RealtimeStatus;
+  error?: Error;
+  lastConnectedAt?: Date;
+  reconnectAttempts?: number;
+}
+
+// ============================================================================
 // WebSocket Events
 // ============================================================================
 

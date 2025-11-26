@@ -10,3 +10,5 @@ export { ErrorBoundary } from './ErrorBoundary';
 export { Toast, ToastContainer } from './Toast';
 export { EmptyState } from './EmptyState';
 export { LazyImage } from './LazyImage';
+export { RealtimeStatusIndicator } from './RealtimeStatusIndicator';
+export { WebSocketErrorNotification } from './WebSocketErrorNotification';

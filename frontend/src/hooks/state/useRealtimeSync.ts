@@ -8,9 +8,10 @@
  * - Type-safe event handlers
  * - Family-based room isolation
  * - Feature flag controlled activation
+ * - Fallback polling mechanism when Realtime fails
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { isFeatureEnabled } from '../../config/featureFlags';
 import type {
@@ -29,6 +30,15 @@ export interface UseRealtimeSyncOptions<T> {
   familyId?: string;
   handlers: RealtimeHandlers<T>;
   enabled?: boolean;
+  /**
+   * Fallback polling interval in milliseconds (default: 5000)
+   * Set to 0 to disable fallback polling
+   */
+  pollingInterval?: number;
+  /**
+   * Function to fetch data when using fallback polling
+   */
+  fetchData?: () => Promise<T[]>;
 }
 
 /**
@@ -41,12 +51,17 @@ export function useRealtimeSync<T extends { id: string }>({
   familyId,
   handlers,
   enabled = true,
+  pollingInterval = 5000,
+  fetchData,
 }: UseRealtimeSyncOptions<T>): void {
   const { onInsert, onUpdate, onDelete } = handlers;
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+  const lastDataRef = useRef<Map<string, T>>(new Map());
+  const pollingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Check if Supabase features are enabled
-    const supabaseEnabled = 
+    const supabaseEnabled =
       isFeatureEnabled('supabase_timers') ||
       isFeatureEnabled('supabase_shopping');
 
@@ -71,6 +86,7 @@ export function useRealtimeSync<T extends { id: string }>({
         },
         (payload: RealtimePostgresChangesPayload<T>) => {
           if (onInsert && payload.new) {
+            setIsRealtimeConnected(true);
             onInsert(payload.new as T);
           }
         }
@@ -85,6 +101,7 @@ export function useRealtimeSync<T extends { id: string }>({
         },
         (payload: RealtimePostgresChangesPayload<T>) => {
           if (onUpdate && payload.new) {
+            setIsRealtimeConnected(true);
             onUpdate(payload.new as T);
           }
         }
@@ -99,17 +116,97 @@ export function useRealtimeSync<T extends { id: string }>({
         },
         (payload: RealtimePostgresChangesPayload<T>) => {
           if (onDelete && payload.old) {
+            setIsRealtimeConnected(true);
             onDelete({ id: (payload.old as T).id });
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`Realtime connected for ${table}`);
+          setIsRealtimeConnected(true);
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn(`Realtime connection failed for ${table}, falling back to polling`);
+          setIsRealtimeConnected(false);
+        }
+      });
 
     // Cleanup on unmount
     return () => {
       channel.unsubscribe();
     };
   }, [table, familyId, enabled, onInsert, onUpdate, onDelete]);
+
+  // Fallback polling mechanism
+  useEffect(() => {
+    // Only enable polling if:
+    // 1. Polling is configured (interval > 0)
+    // 2. fetchData function is provided
+    // 3. Realtime is not connected
+    if (pollingInterval === 0 || !fetchData || isRealtimeConnected) {
+      return;
+    }
+
+    console.log(`Starting fallback polling for ${table} (${pollingInterval}ms)`);
+
+    const poll = async () => {
+      try {
+        const currentData = await fetchData();
+        const currentMap = new Map(currentData.map((item) => [item.id, item]));
+
+        // Check for new/updated items
+        currentData.forEach((item) => {
+          const lastItem = lastDataRef.current.get(item.id);
+
+          if (!lastItem) {
+            // New item
+            if (onInsert) {
+              onInsert(item);
+            }
+          } else {
+            // Check if updated (compare by updated_at if available)
+            const hasChanged = JSON.stringify(lastItem) !== JSON.stringify(item);
+            if (hasChanged && onUpdate) {
+              onUpdate(item);
+            }
+          }
+        });
+
+        // Check for deleted items
+        lastDataRef.current.forEach((_lastItem, id) => {
+          if (!currentMap.has(id) && onDelete) {
+            onDelete({ id });
+          }
+        });
+
+        // Update ref
+        lastDataRef.current = currentMap;
+      } catch (error) {
+        console.error(`Polling error for ${table}:`, error);
+      }
+    };
+
+    // Initial poll
+    poll();
+
+    // Set up interval
+    pollingTimerRef.current = window.setInterval(poll, pollingInterval);
+
+    return () => {
+      if (pollingTimerRef.current) {
+        clearInterval(pollingTimerRef.current);
+        pollingTimerRef.current = null;
+      }
+    };
+  }, [
+    table,
+    pollingInterval,
+    fetchData,
+    isRealtimeConnected,
+    onInsert,
+    onUpdate,
+    onDelete,
+  ]);
 }
 
 /**

@@ -10,9 +10,11 @@ import { queryClient } from './lib/queryClient';
 import { AppRoutes } from './router';
 import { ErrorBoundary } from './components/ui';
 import { WebSocketErrorNotification } from './components/ui/WebSocketErrorNotification';
+import { RealtimeStatusIndicator } from './components/ui/RealtimeStatusIndicator';
 import { AuthProvider } from './contexts/AuthContext';
 import { FamilyProvider } from './contexts/FamilyContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
+import { RealtimeProvider } from './contexts/RealtimeContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 // Lazy load devtools only in development
@@ -32,10 +34,13 @@ function App() {
           <BrowserRouter>
             <AuthProvider>
               <FamilyProvider>
-                <WebSocketProvider>
-                  <AppRoutes />
-                  <WebSocketErrorNotification />
-                </WebSocketProvider>
+                <RealtimeProvider>
+                  <WebSocketProvider>
+                    <AppRoutes />
+                    <WebSocketErrorNotification />
+                    <RealtimeStatusIndicator />
+                  </WebSocketProvider>
+                </RealtimeProvider>
               </FamilyProvider>
             </AuthProvider>
           </BrowserRouter>
