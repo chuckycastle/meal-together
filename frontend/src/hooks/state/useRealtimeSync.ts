@@ -7,14 +7,23 @@
  * - Cleanup on unmount
  * - Type-safe event handlers
  * - Family-based room isolation
+ *
+ * NOTE: Currently in preparation for Supabase migration.
+ * These hooks will be enabled once Supabase project is created.
  */
 
 import { useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
-import type {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from '@supabase/supabase-js';
+
+// Placeholder types until Supabase is set up (currently unused)
+// type RealtimeChannel = any;
+// type RealtimePostgresChangesPayload<T> = any;
+
+// Import supabase client when available
+// import { supabase } from '../../lib/supabase';
+// import type {
+//   RealtimeChannel,
+//   RealtimePostgresChangesPayload,
+// } from '@supabase/supabase-js';
 
 export interface RealtimeHandlers<T> {
   onInsert?: (payload: T) => void;
@@ -45,6 +54,10 @@ export function useRealtimeSync<T extends { id: string }>({
   useEffect(() => {
     if (!enabled) return;
 
+    // TODO: Enable when Supabase project is created
+    console.log('Real-time sync prepared for:', { table, familyId });
+
+    /* DISABLED UNTIL SUPABASE MIGRATION
     // Create channel name (include family_id for isolation)
     const channelName = familyId ? `${table}:${familyId}` : table;
 
@@ -99,6 +112,7 @@ export function useRealtimeSync<T extends { id: string }>({
     return () => {
       channel.unsubscribe();
     };
+    */
   }, [table, familyId, enabled, onInsert, onUpdate, onDelete]);
 }
 
@@ -168,6 +182,10 @@ export function useBatchRealtimeSync<T extends { id: string }>(
   useEffect(() => {
     if (!familyId) return;
 
+    // TODO: Enable when Supabase project is created
+    console.log('Batch real-time sync prepared for:', { familyId, tableCount: tables.length });
+
+    /* DISABLED UNTIL SUPABASE MIGRATION
     const channels: RealtimeChannel[] = [];
 
     tables.forEach(({ table, handlers }) => {
@@ -227,5 +245,6 @@ export function useBatchRealtimeSync<T extends { id: string }>(
     return () => {
       channels.forEach((channel) => channel.unsubscribe());
     };
+    */
   }, [familyId, tables]);
 }
