@@ -97,7 +97,14 @@ export const TimerCard = memo(({
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+      <div
+        className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4"
+        role="progressbar"
+        aria-valuenow={getProgressPercentage()}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Timer progress: ${getProgressPercentage()}% complete`}
+      >
         <div
           className={`h-2 rounded-full transition-all duration-1000 ${
             isCompleted
@@ -111,7 +118,7 @@ export const TimerCard = memo(({
       </div>
 
       {/* Status */}
-      <div className="text-sm text-center mb-4">
+      <div className="text-sm text-center mb-4" role="status" aria-live="polite">
         {isCompleted && (
           <span className="inline-flex items-center gap-1 text-green-600 font-medium">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,9 +145,10 @@ export const TimerCard = memo(({
             <button
               onClick={() => onStart(timer.id)}
               disabled={isUpdating}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              aria-label={`Start timer: ${timer.name}`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -162,9 +170,10 @@ export const TimerCard = memo(({
             <button
               onClick={() => onPause(timer.id)}
               disabled={isUpdating}
-              className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              aria-label={`Pause timer: ${timer.name}`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6" />
               </svg>
               Pause
@@ -175,9 +184,10 @@ export const TimerCard = memo(({
             <button
               onClick={() => onResume(timer.id)}
               disabled={isUpdating}
-              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              aria-label={`Resume timer: ${timer.name}`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
