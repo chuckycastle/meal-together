@@ -13,6 +13,7 @@ export interface FeatureFlags {
   // Additional feature toggles
   debug_mode: boolean;
   enable_telemetry: boolean;
+  recipe_ai_import: boolean;
 }
 
 // Default feature flags (all Supabase features disabled initially)
@@ -23,6 +24,7 @@ const defaultFlags: FeatureFlags = {
   disable_socketio: false,
   debug_mode: import.meta.env.DEV,
   enable_telemetry: true,
+  recipe_ai_import: false,
 };
 
 // Environment variable overrides
@@ -33,6 +35,7 @@ const envFlags: Partial<FeatureFlags> = {
   disable_socketio: import.meta.env.VITE_FEATURE_DISABLE_SOCKETIO === 'true',
   debug_mode: import.meta.env.VITE_FEATURE_DEBUG_MODE === 'true',
   enable_telemetry: import.meta.env.VITE_FEATURE_TELEMETRY !== 'false',
+  recipe_ai_import: import.meta.env.VITE_FEATURE_RECIPE_AI_IMPORT === 'true',
 };
 
 // Merge defaults with environment overrides

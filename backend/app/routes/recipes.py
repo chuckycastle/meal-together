@@ -4,10 +4,14 @@ Recipe management routes
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import joinedload, selectinload
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from app import db
 from app.models.recipe import Recipe, Ingredient, CookingStep, RecipeTimer
 from app.utils.decorators import family_member_required
 from app.utils.pagination import get_pagination_params, paginate_query, create_paginated_response
+from app.services.recipe_parser import parse_recipe
+from app.schemas.recipe_import import ImportResponse
 
 bp = Blueprint('recipes', __name__, url_prefix='/api/families/<int:family_id>/recipes')
 
@@ -248,3 +252,90 @@ def assign_recipe(family_id, recipe_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+
+# Initialize rate limiter for import endpoint
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri="memory://"
+)
+
+
+@bp.route('/import', methods=['POST'])
+@family_member_required
+def import_recipe_endpoint(family_id):
+    """
+    Import recipe from URL using AI parsing.
+    Fetches URL, extracts recipe data, normalizes with LLM, and returns structured recipe.
+
+    Rate limits:
+    - 10 requests per hour per family
+    - 50 requests per hour per IP
+
+    Request body:
+    {
+        "url": "https://example.com/recipe"
+    }
+
+    Response:
+    {
+        "recipe": {...},
+        "confidence": "high" | "medium" | "low",
+        "extraction_method": "json-ld" | "heuristic" | "ai" | "cached"
+    }
+    """
+    # Apply rate limits
+    family_limit_key = f"family-{family_id}"
+
+    # Check family-specific limit (10/hour)
+    try:
+        limiter.check(lambda: family_limit_key, "10 per hour")
+    except Exception:
+        return jsonify({"error": "Too many import requests for this family. Try again later."}), 429
+
+    # Check IP limit (50/hour)
+    try:
+        limiter.check(get_remote_address, "50 per hour")
+    except Exception:
+        return jsonify({"error": "Too many import requests from your IP. Try again later."}), 429
+
+    # Get request data
+    data = request.get_json()
+    url = data.get('url')
+
+    if not url:
+        return jsonify({"error": "URL required"}), 400
+
+    # Get user ID (validated by @family_member_required decorator)
+    user_id = get_jwt_identity()
+
+    try:
+        # Parse recipe (with SSRF protection, LLM normalization, timer derivation)
+        recipe, extraction_method = parse_recipe(url, str(family_id), str(user_id))
+
+        # Set confidence based on extraction method and timer presence
+        if extraction_method == "ai" and recipe.timers:
+            confidence = "high"
+        elif extraction_method in ("ai", "json-ld"):
+            confidence = "medium"
+        else:
+            confidence = "low"
+
+        # Build response
+        response = ImportResponse(
+            recipe=recipe,
+            confidence=confidence,
+            extraction_method=extraction_method
+        )
+
+        return jsonify(response.dict()), 200
+
+    except ValueError as e:
+        # URL validation, fetch, or size errors (400 Bad Request)
+        error_msg = str(e)
+        return jsonify({"error": error_msg}), 400
+
+    except Exception as e:
+        # Parse, validation, or unexpected errors (422 Unprocessable Entity)
+        print(f"Recipe import failed: {e}")
+        return jsonify({"error": "Could not parse recipe from URL"}), 422

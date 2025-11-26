@@ -56,6 +56,8 @@ export const RecipeFormPage = () => {
     formState: { errors, isSubmitting },
     reset,
     trigger,
+    setValue,
+    watch,
   } = useForm({
     resolver: zodResolver(recipeSchema),
     defaultValues: {
@@ -242,7 +244,7 @@ export const RecipeFormPage = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="bg-white rounded-lg shadow p-6 border border-gray-200 mb-6">
           {currentStep === 'details' && (
-            <RecipeDetailsStep register={register} errors={errors} />
+            <RecipeDetailsStep register={register} errors={errors} setValue={setValue} watch={watch} />
           )}
           {currentStep === 'ingredients' && (
             <IngredientsStep register={register} control={control} errors={errors} />
