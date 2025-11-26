@@ -12,10 +12,12 @@ import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { ProfileForm, ChangePasswordForm } from '../components/profile';
 import type { UpdateProfileFormData, ChangePasswordFormData } from '../schemas/profile.schema';
 import { apiClient } from '../services/api';
+import { useAudioNotification } from '../hooks/state/useAudioNotification';
 
 export const ProfilePage = () => {
   const { user, refreshUser } = useAuth();
   const { families } = useFamily();
+  const { enabled: audioEnabled, setEnabled: setAudioEnabled, playTestChime } = useAudioNotification();
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'families' | 'settings'>('profile');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -197,8 +199,44 @@ export const ProfilePage = () => {
               <p className="text-sm text-gray-800 dark:text-gray-300 mb-6">
                 Customize your MealTogether experience
               </p>
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Theme Setting */}
                 <ThemeToggle />
+
+                {/* Audio Notification Setting */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-base font-medium text-gray-900 dark:text-white">
+                        Audio Notifications
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Play a sound when timers complete
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setAudioEnabled(!audioEnabled)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        audioEnabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
+                      }`}
+                      aria-label={audioEnabled ? 'Disable audio notifications' : 'Enable audio notifications'}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          audioEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  {audioEnabled && (
+                    <button
+                      onClick={playTestChime}
+                      className="mt-3 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30 rounded-md transition-colors"
+                    >
+                      Test Sound
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
