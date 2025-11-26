@@ -16,6 +16,7 @@ const RecipeFormPage = lazy(() => import('./pages/recipes/RecipeFormPage'));
 const ShoppingListPage = lazy(() => import('./pages/shopping/ShoppingListPage'));
 const TimelineSchedulerPage = lazy(() => import('./pages/timeline/TimelineSchedulerPage'));
 const CookingSessionPage = lazy(() => import('./pages/cooking/CookingSessionPage'));
+const TimerDemoPage = lazy(() => import('./pages/cooking/TimerDemoPage'));
 const FamilyManagementPage = lazy(() => import('./pages/families/FamilyManagementPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
@@ -105,6 +106,14 @@ export const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <CookingSessionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/timer-demo"
+        element={
+          <ProtectedRoute>
+            <TimerDemoPage />
           </ProtectedRoute>
         }
       />
