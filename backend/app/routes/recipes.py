@@ -4,8 +4,6 @@ Recipe management routes
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import joinedload, selectinload
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from app import db
 from app.models.recipe import Recipe, Ingredient, CookingStep, RecipeTimer
 from app.utils.decorators import family_member_required
@@ -254,13 +252,6 @@ def assign_recipe(family_id, recipe_id):
         return jsonify({'error': str(e)}), 500
 
 
-# Initialize rate limiter for import endpoint
-limiter = Limiter(
-    key_func=get_remote_address,
-    storage_uri="memory://"
-)
-
-
 @bp.route('/import', methods=['POST'])
 @family_member_required
 def import_recipe_endpoint(family_id):
@@ -268,9 +259,7 @@ def import_recipe_endpoint(family_id):
     Import recipe from URL using AI parsing.
     Fetches URL, extracts recipe data, normalizes with LLM, and returns structured recipe.
 
-    Rate limits:
-    - 10 requests per hour per family
-    - 50 requests per hour per IP
+    Rate limiting handled by circuit breaker pattern in parse_recipe().
 
     Request body:
     {
@@ -284,20 +273,6 @@ def import_recipe_endpoint(family_id):
         "extraction_method": "json-ld" | "heuristic" | "ai" | "cached"
     }
     """
-    # Apply rate limits
-    family_limit_key = f"family-{family_id}"
-
-    # Check family-specific limit (10/hour)
-    try:
-        limiter.check(lambda: family_limit_key, "10 per hour")
-    except Exception:
-        return jsonify({"error": "Too many import requests for this family. Try again later."}), 429
-
-    # Check IP limit (50/hour)
-    try:
-        limiter.check(get_remote_address, "50 per hour")
-    except Exception:
-        return jsonify({"error": "Too many import requests from your IP. Try again later."}), 429
 
     # Get request data
     data = request.get_json()
