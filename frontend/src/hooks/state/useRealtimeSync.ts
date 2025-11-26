@@ -7,23 +7,16 @@
  * - Cleanup on unmount
  * - Type-safe event handlers
  * - Family-based room isolation
- *
- * NOTE: Currently in preparation for Supabase migration.
- * These hooks will be enabled once Supabase project is created.
+ * - Feature flag controlled activation
  */
 
 import { useEffect } from 'react';
-
-// Placeholder types until Supabase is set up (currently unused)
-// type RealtimeChannel = any;
-// type RealtimePostgresChangesPayload<T> = any;
-
-// Import supabase client when available
-// import { supabase } from '../../lib/supabase';
-// import type {
-//   RealtimeChannel,
-//   RealtimePostgresChangesPayload,
-// } from '@supabase/supabase-js';
+import { supabase } from '../../lib/supabase';
+import { isFeatureEnabled } from '../../config/featureFlags';
+import type {
+  RealtimeChannel,
+  RealtimePostgresChangesPayload,
+} from '@supabase/supabase-js';
 
 export interface RealtimeHandlers<T> {
   onInsert?: (payload: T) => void;
@@ -52,12 +45,16 @@ export function useRealtimeSync<T extends { id: string }>({
   const { onInsert, onUpdate, onDelete } = handlers;
 
   useEffect(() => {
-    if (!enabled) return;
+    // Check if Supabase features are enabled
+    const supabaseEnabled = 
+      isFeatureEnabled('supabase_timers') ||
+      isFeatureEnabled('supabase_shopping');
 
-    // TODO: Enable when Supabase project is created
-    console.log('Real-time sync prepared for:', { table, familyId });
+    if (!enabled || !supabaseEnabled) {
+      console.log('Real-time sync disabled:', { table, familyId, supabaseEnabled });
+      return;
+    }
 
-    /* DISABLED UNTIL SUPABASE MIGRATION
     // Create channel name (include family_id for isolation)
     const channelName = familyId ? `${table}:${familyId}` : table;
 
@@ -112,24 +109,24 @@ export function useRealtimeSync<T extends { id: string }>({
     return () => {
       channel.unsubscribe();
     };
-    */
   }, [table, familyId, enabled, onInsert, onUpdate, onDelete]);
 }
 
 /**
- * Subscribe to timer changes for a cooking session
- * @param sessionId - Cooking session ID
+ * Subscribe to kitchen timer changes for a family
+ * Uses new kitchen_timers table (family-level timers)
+ * @param familyId - Family ID
  * @param handlers - Event handlers
  */
-export function useTimerSync<T extends { id: string }>(
-  sessionId: string | null,
+export function useKitchenTimerSync<T extends { id: string }>(
+  familyId: string | null,
   handlers: RealtimeHandlers<T>
 ): void {
   useRealtimeSync({
-    table: 'active_timers',
-    familyId: sessionId || undefined,
+    table: 'kitchen_timers',
+    familyId: familyId || undefined,
     handlers,
-    enabled: !!sessionId,
+    enabled: !!familyId && isFeatureEnabled('supabase_timers'),
   });
 }
 
@@ -163,7 +160,7 @@ export function useShoppingListSync<T extends { id: string }>(
     table: 'shopping_list_items',
     familyId: familyId || undefined,
     handlers,
-    enabled: !!familyId,
+    enabled: !!familyId && isFeatureEnabled('supabase_shopping'),
   });
 }
 
@@ -182,10 +179,16 @@ export function useBatchRealtimeSync<T extends { id: string }>(
   useEffect(() => {
     if (!familyId) return;
 
-    // TODO: Enable when Supabase project is created
-    console.log('Batch real-time sync prepared for:', { familyId, tableCount: tables.length });
+    // Check if any Supabase features are enabled
+    const supabaseEnabled =
+      isFeatureEnabled('supabase_timers') ||
+      isFeatureEnabled('supabase_shopping');
 
-    /* DISABLED UNTIL SUPABASE MIGRATION
+    if (!supabaseEnabled) {
+      console.log('Batch real-time sync disabled - no Supabase features enabled');
+      return;
+    }
+
     const channels: RealtimeChannel[] = [];
 
     tables.forEach(({ table, handlers }) => {
@@ -245,6 +248,5 @@ export function useBatchRealtimeSync<T extends { id: string }>(
     return () => {
       channels.forEach((channel) => channel.unsubscribe());
     };
-    */
   }, [familyId, tables]);
 }

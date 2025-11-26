@@ -6,7 +6,9 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiClient } from '../services/api';
+import { authService } from '../services/auth';
+import { supabase } from '../lib/supabase';
+import { isFeatureEnabled } from '../config/featureFlags';
 import type { User, LoginRequest, RegisterRequest } from '../types';
 
 interface AuthContextValue {
@@ -25,48 +27,100 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const ACCESS_TOKEN_KEY = 'access_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Load user from token on mount
+  // Load user from token on mount and listen to auth state changes
   useEffect(() => {
-    const loadUser = async () => {
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
+    const useSupabaseAuth = isFeatureEnabled('supabase_auth');
 
-      try {
-        const userData = await apiClient.getCurrentUser();
-        setUser(userData);
-      } catch (error) {
-        console.error('Failed to load user:', error);
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
-      } finally {
-        setIsLoading(false);
+    const loadUser = async () => {
+      if (useSupabaseAuth) {
+        // For Supabase, check session directly
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            const userData = await authService.getCurrentUser();
+            setUser(userData);
+          }
+        } catch (error) {
+          console.error('Failed to load Supabase session:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        // For Flask, check localStorage token
+        const token = authService.getAccessToken();
+        if (!token) {
+          setIsLoading(false);
+          return;
+        }
+
+        try {
+          const userData = await authService.getCurrentUser();
+          setUser(userData);
+        } catch (error) {
+          console.error('Failed to load user:', error);
+          await authService.logout();
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
 
     loadUser();
+
+    // Set up Supabase auth state listener if using Supabase auth
+    if (useSupabaseAuth) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          console.log('Auth state changed:', event, session?.user?.email);
+
+          if (event === 'SIGNED_IN' && session) {
+            try {
+              const userData = await authService.getCurrentUser();
+              setUser(userData);
+            } catch (error) {
+              console.error('Failed to load user after sign in:', error);
+              setUser(null);
+            }
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            // Optionally refresh user data on token refresh
+            try {
+              const userData = await authService.getCurrentUser();
+              setUser(userData);
+            } catch (error) {
+              console.error('Failed to refresh user data:', error);
+            }
+          } else if (event === 'USER_UPDATED' && session) {
+            // Refresh user data when user profile is updated
+            try {
+              const userData = await authService.getCurrentUser();
+              setUser(userData);
+            } catch (error) {
+              console.error('Failed to update user data:', error);
+            }
+          }
+        }
+      );
+
+      // Cleanup subscription on unmount
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
   }, []);
 
   const login = useCallback(async (credentials: LoginRequest): Promise<void> => {
     setIsLoading(true);
     try {
-      const response = await apiClient.login(credentials);
-      if ('access_token' in response && 'refresh_token' in response && typeof response.access_token === 'string' && typeof response.refresh_token === 'string') {
-        localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-        localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
-        setUser(response.user);
-        navigate('/');
-      }
+      const response = await authService.login(credentials);
+      setUser(response.user);
+      navigate('/');
     } catch (error) {
       setIsLoading(false);
       throw error;
@@ -77,13 +131,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = useCallback(async (userData: RegisterRequest): Promise<void> => {
     setIsLoading(true);
     try {
-      const response = await apiClient.register(userData);
-      if ('access_token' in response && 'refresh_token' in response && typeof response.access_token === 'string' && typeof response.refresh_token === 'string') {
-        localStorage.setItem(ACCESS_TOKEN_KEY, response.access_token);
-        localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token);
-        setUser(response.user);
-        navigate('/');
-      }
+      const response = await authService.register(userData);
+      setUser(response.user);
+      navigate('/');
     } catch (error) {
       setIsLoading(false);
       throw error;
@@ -91,16 +141,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, [navigate]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  const logout = useCallback(async () => {
+    await authService.logout();
     setUser(null);
     navigate('/login');
   }, [navigate]);
 
   const refreshUser = useCallback(async (): Promise<void> => {
     try {
-      const userData = await apiClient.getCurrentUser();
+      const userData = await authService.getCurrentUser();
       setUser(userData);
     } catch (error) {
       console.error('Failed to refresh user:', error);
@@ -129,17 +178,17 @@ export const useAuth = (): AuthContextValue => {
   return context;
 };
 
-// Helper function to get tokens
+// Helper functions to get tokens (delegates to auth service)
 export const getAccessToken = (): string | null => {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  return authService.getAccessToken();
 };
 
 export const getRefreshToken = (): string | null => {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return authService.getRefreshToken();
 };
 
 export const setAccessToken = (token: string): void => {
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  authService.setAccessToken(token);
 };
 
 export default AuthContext;

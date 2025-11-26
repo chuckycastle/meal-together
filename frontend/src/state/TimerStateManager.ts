@@ -71,9 +71,10 @@ export class TimerStateManager extends TaskStateManager<TimerState> {
     }
 
     // Calculate remaining seconds from end_at (turkey pattern)
+    // Use Math.floor for consistency with tick loop to avoid precision drift
     const now = new Date();
     const remainingMs = timer.endAt ? timer.endAt.getTime() - now.getTime() : 0;
-    const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+    const remainingSeconds = Math.max(0, Math.floor(remainingMs / 1000));
 
     const updatedTimer: TimerState = {
       ...timer,

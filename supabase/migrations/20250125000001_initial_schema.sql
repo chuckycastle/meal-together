@@ -2,13 +2,14 @@
 -- This migration creates all tables with enhanced columns from the turkey project
 
 -- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA public;
 
 -- ============================================================================
 -- USERS TABLE
 -- ============================================================================
 CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT, -- Optional for OAuth users
   first_name TEXT,
@@ -36,7 +37,7 @@ CREATE INDEX idx_users_email ON users(email);
 -- FAMILIES TABLE
 -- ============================================================================
 CREATE TABLE families (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -50,7 +51,7 @@ CREATE INDEX idx_families_created_by ON families(created_by);
 -- FAMILY MEMBERS TABLE
 -- ============================================================================
 CREATE TABLE family_members (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id UUID REFERENCES families(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('OWNER', 'ADMIN', 'MEMBER')),
@@ -66,7 +67,7 @@ CREATE INDEX idx_family_members_user ON family_members(user_id);
 -- RECIPES TABLE (Enhanced with turkey patterns)
 -- ============================================================================
 CREATE TABLE recipes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id UUID REFERENCES families(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
@@ -97,7 +98,7 @@ CREATE INDEX idx_recipes_target_start_time ON recipes(target_start_time);
 -- INGREDIENTS TABLE
 -- ============================================================================
 CREATE TABLE ingredients (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   quantity TEXT,
@@ -112,7 +113,7 @@ CREATE INDEX idx_ingredients_order ON ingredients(recipe_id, "order");
 -- COOKING STEPS TABLE
 -- ============================================================================
 CREATE TABLE cooking_steps (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE NOT NULL,
   "order" INTEGER NOT NULL CHECK ("order" >= 0),
   instruction TEXT NOT NULL,
@@ -127,7 +128,7 @@ CREATE INDEX idx_cooking_steps_order ON cooking_steps(recipe_id, "order");
 -- RECIPE TIMERS TABLE (Predefined timers)
 -- ============================================================================
 CREATE TABLE recipe_timers (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   duration INTEGER NOT NULL CHECK (duration > 0), -- seconds
@@ -140,7 +141,7 @@ CREATE INDEX idx_recipe_timers_recipe ON recipe_timers(recipe_id);
 -- SHOPPING LISTS TABLE
 -- ============================================================================
 CREATE TABLE shopping_lists (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id UUID REFERENCES families(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -154,7 +155,7 @@ CREATE INDEX idx_shopping_lists_family ON shopping_lists(family_id);
 -- SHOPPING LIST ITEMS TABLE
 -- ============================================================================
 CREATE TABLE shopping_list_items (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   shopping_list_id UUID REFERENCES shopping_lists(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   quantity TEXT,
@@ -178,7 +179,7 @@ CREATE INDEX idx_shopping_list_items_checked ON shopping_list_items(checked);
 -- COOKING SESSIONS TABLE
 -- ============================================================================
 CREATE TABLE cooking_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   family_id UUID REFERENCES families(id) ON DELETE CASCADE NOT NULL,
   recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE NOT NULL,
   started_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -195,7 +196,7 @@ CREATE INDEX idx_cooking_sessions_active ON cooking_sessions(is_active);
 -- ACTIVE TIMERS TABLE (Enhanced with turkey precision pattern)
 -- ============================================================================
 CREATE TABLE active_timers (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cooking_session_id UUID REFERENCES cooking_sessions(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
 
