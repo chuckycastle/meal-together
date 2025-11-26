@@ -216,6 +216,25 @@ def delete_recipe(family_id, recipe_id):
     if not recipe or recipe.family_id != family_id:
         return jsonify({'error': 'Recipe not found'}), 404
 
+    # Check if user has permission to delete
+    user_id = int(get_jwt_identity())
+
+    # Get user's family membership to check role
+    from app.models.family import FamilyMember
+    member = FamilyMember.query.filter_by(
+        family_id=family_id,
+        user_id=user_id
+    ).first()
+
+    # Allow: assigned user, family owners, or family admins
+    can_delete = (
+        recipe.assigned_to_id == user_id or
+        (member and member.role.value in ['owner', 'admin'])
+    )
+
+    if not can_delete:
+        return jsonify({'error': 'Permission denied. Only the assigned user or family admins can delete recipes.'}), 403
+
     try:
         recipe.delete()
         return jsonify({'message': 'Recipe deleted successfully'}), 200

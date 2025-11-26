@@ -39,8 +39,10 @@ export const RecipeDetailPage = () => {
     try {
       await deleteRecipe.mutateAsync(recipeId);
       navigate('/recipes');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to delete recipe:', err);
+      const errorMessage = err?.response?.data?.error || 'Failed to delete recipe. Please try again.';
+      alert(errorMessage);
     }
   };
 
@@ -84,8 +86,13 @@ export const RecipeDetailPage = () => {
     );
   }
 
-  // Check if current user is the recipe owner
-  const isOwner = user?.id === recipe.assigned_to_id;
+  // Check if current user can delete the recipe
+  // Allow: assigned user, family owners, or family admins
+  const currentUserMembership = activeFamily.members?.find(m => m.user_id === user?.id);
+  const canDelete =
+    user?.id === recipe.assigned_to_id ||
+    currentUserMembership?.role === 'owner' ||
+    currentUserMembership?.role === 'admin';
 
   return (
     <Layout>
@@ -124,7 +131,7 @@ export const RecipeDetailPage = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 ml-4">
-            {isOwner && (
+            {canDelete && (
               <>
                 <Link
                   to={`/recipes/${recipe.id}/edit`}
