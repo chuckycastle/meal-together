@@ -12,7 +12,7 @@ interface CookingStepListProps {
 export const CookingStepList = ({ steps }: CookingStepListProps) => {
   if (steps.length === 0) {
     return (
-      <p className="text-gray-800 italic">No cooking steps listed</p>
+      <p className="text-gray-800 dark:text-gray-300 italic">No cooking steps listed</p>
     );
   }
 
@@ -29,9 +29,9 @@ export const CookingStepList = ({ steps }: CookingStepListProps) => {
             </span>
           </div>
           <div className="flex-1 pt-1">
-            <p className="text-gray-800 leading-relaxed">{step.instruction}</p>
+            <p className="text-gray-800 dark:text-gray-300 leading-relaxed">{step.instruction}</p>
             {step.estimated_time && (
-              <p className="text-sm text-gray-800 mt-1">
+              <p className="text-sm text-gray-800 dark:text-gray-400 mt-1">
                 <svg
                   className="w-4 h-4 inline mr-1"
                   fill="none"
