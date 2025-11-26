@@ -3,10 +3,9 @@
  * Multi-timer cooking interface with real-time sync
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useFamily } from '../../contexts/FamilyContext';
-import { useWebSocket } from '../../contexts/WebSocketContext';
 import { useRecipe } from '../../hooks/useRecipes';
 import {
   useActiveSessions,
@@ -27,7 +26,6 @@ export const CookingSessionPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { activeFamily } = useFamily();
-  const { on, isConnected } = useWebSocket();
   const [updatingTimers, setUpdatingTimers] = useState<Set<number>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -40,7 +38,6 @@ export const CookingSessionPage = () => {
   // Get session details
   const {
     data: session,
-    refetch,
   } = useCookingSession(activeFamily?.id, activeSession?.id);
 
   // Get recipe details
@@ -56,39 +53,6 @@ export const CookingSessionPage = () => {
   const pauseTimer = usePauseTimer(activeFamily?.id || 0, activeSession?.id || 0);
   const resumeTimer = useResumeTimer(activeFamily?.id || 0, activeSession?.id || 0);
   const cancelTimer = useCancelTimer(activeFamily?.id || 0, activeSession?.id || 0);
-
-  // WebSocket event handlers
-  useEffect(() => {
-    if (!isConnected || !activeSession) return;
-
-    const handleTimerUpdate = () => {
-      refetch();
-    };
-
-    const handleTimerCompleted = () => {
-      // Play sound when timer completes
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {
-          // Ignore autoplay errors
-        });
-      }
-      refetch();
-    };
-
-    const unsubscribeStarted = on('timer_started', handleTimerUpdate);
-    const unsubscribePaused = on('timer_paused', handleTimerUpdate);
-    const unsubscribeResumed = on('timer_resumed', handleTimerUpdate);
-    const unsubscribeCompleted = on('timer_completed', handleTimerCompleted);
-    const unsubscribeCancelled = on('timer_cancelled', handleTimerUpdate);
-
-    return () => {
-      unsubscribeStarted();
-      unsubscribePaused();
-      unsubscribeResumed();
-      unsubscribeCompleted();
-      unsubscribeCancelled();
-    };
-  }, [on, isConnected, activeSession, refetch]);
 
   const handleStartSession = async () => {
     if (!recipeId) return;
@@ -266,15 +230,8 @@ export const CookingSessionPage = () => {
             <p className="text-gray-800">Cooking Session</p>
           </div>
 
-          {/* Connection & Complete */}
+          {/* Complete Button */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`} />
-              <span className="text-sm text-gray-800">
-                {isConnected ? 'Synced' : 'Offline'}
-              </span>
-            </div>
-
             <button
               onClick={handleCompleteSession}
               className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"

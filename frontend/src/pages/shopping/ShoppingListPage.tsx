@@ -3,9 +3,8 @@
  * Collaborative shopping list with real-time updates
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
-import { useWebSocket } from '../../contexts/WebSocketContext';
 import {
   useShoppingLists,
   useShoppingList,
@@ -22,7 +21,6 @@ import type { ShoppingListItem, ShoppingItemFormData } from '../../types';
 
 export const ShoppingListPage = () => {
   const { activeFamily } = useFamily();
-  const { on, isConnected } = useWebSocket();
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
   // Get active shopping lists
@@ -46,41 +44,6 @@ export const ShoppingListPage = () => {
   const addItem = useAddItem(activeFamily?.id || 0, activeList?.id || 0);
   const updateItem = useUpdateItem(activeFamily?.id || 0, activeList?.id || 0);
   const deleteItem = useDeleteItem(activeFamily?.id || 0, activeList?.id || 0);
-
-  // WebSocket event handlers with debounced refetch
-  useEffect(() => {
-    if (!isConnected || !activeList) return;
-
-    // Track if component is mounted to prevent state updates after unmount
-    let isMounted = true;
-
-    // Debounce refetch to prevent multiple concurrent API calls
-    let refetchTimer: ReturnType<typeof setTimeout> | null = null;
-    const debouncedRefetch = () => {
-      if (refetchTimer) clearTimeout(refetchTimer);
-      refetchTimer = setTimeout(() => {
-        if (isMounted) {
-          refetch();
-        }
-      }, 300);
-    };
-
-    const handleItemAdded = () => debouncedRefetch();
-    const handleItemUpdated = () => debouncedRefetch();
-    const handleItemDeleted = () => debouncedRefetch();
-
-    const unsubscribeAdded = on('shopping_item_added', handleItemAdded);
-    const unsubscribeUpdated = on('shopping_item_updated', handleItemUpdated);
-    const unsubscribeDeleted = on('shopping_item_deleted', handleItemDeleted);
-
-    return () => {
-      isMounted = false;
-      if (refetchTimer) clearTimeout(refetchTimer);
-      unsubscribeAdded();
-      unsubscribeUpdated();
-      unsubscribeDeleted();
-    };
-  }, [on, isConnected, activeList, refetch]);
 
   const handleCreateShoppingList = async () => {
     if (!activeFamily) return;
@@ -221,14 +184,6 @@ export const ShoppingListPage = () => {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Shopping List</h1>
               <p className="text-gray-800 dark:text-gray-300 mt-1">{activeFamily.name}</p>
             </div>
-
-          {/* Connection Status */}
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`} />
-            <span className="text-sm text-gray-800">
-              {isConnected ? 'Live' : 'Offline'}
-            </span>
-          </div>
         </div>
 
         {/* Progress Bar */}
@@ -292,7 +247,7 @@ export const ShoppingListPage = () => {
       )}
 
       {/* Info Box */}
-      {isConnected && items.length > 0 && (
+      {items.length > 0 && (
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex gap-3">
             <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
