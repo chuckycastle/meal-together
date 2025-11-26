@@ -37,15 +37,15 @@ export const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-800">
+          <p className="mt-2 text-center text-sm text-gray-800 dark:text-gray-300">
             Or{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
               sign in to your existing account
             </Link>
           </p>
@@ -56,7 +56,7 @@ export const RegisterPage = () => {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-800">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
                 Email address
               </label>
               <input
@@ -65,8 +65,8 @@ export const RegisterPage = () => {
                 type="email"
                 autoComplete="email"
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                  errors.email ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  errors.email ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                 placeholder="Email address"
               />
               {errors.email && (
@@ -76,7 +76,7 @@ export const RegisterPage = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="first_name" className="block text-sm font-medium text-gray-800">
+                <label htmlFor="first_name" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
                   First name
                 </label>
                 <input
@@ -85,8 +85,8 @@ export const RegisterPage = () => {
                   type="text"
                   autoComplete="given-name"
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.first_name ? 'border-red-300' : 'border-gray-300'
-                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                    errors.first_name ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                  } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                   placeholder="First name"
                 />
                 {errors.first_name && (
@@ -95,7 +95,7 @@ export const RegisterPage = () => {
               </div>
 
               <div>
-                <label htmlFor="last_name" className="block text-sm font-medium text-gray-800">
+                <label htmlFor="last_name" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
                   Last name
                 </label>
                 <input
@@ -104,8 +104,8 @@ export const RegisterPage = () => {
                   type="text"
                   autoComplete="family-name"
                   className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                    errors.last_name ? 'border-red-300' : 'border-gray-300'
-                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                    errors.last_name ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                  } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                   placeholder="Last name"
                 />
                 {errors.last_name && (
@@ -115,7 +115,7 @@ export const RegisterPage = () => {
             </div>
 
             <div className="relative">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-800">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
                 Password
               </label>
               <input
@@ -124,8 +124,8 @@ export const RegisterPage = () => {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                  errors.password ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  errors.password ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                 placeholder="Password"
               />
               <button
@@ -135,7 +135,7 @@ export const RegisterPage = () => {
               >
                 {showPassword ? (
                   <svg
-                    className="h-5 w-5 text-gray-800"
+                    className="h-5 w-5 text-gray-800 dark:text-gray-300"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -149,7 +149,7 @@ export const RegisterPage = () => {
                   </svg>
                 ) : (
                   <svg
-                    className="h-5 w-5 text-gray-800"
+                    className="h-5 w-5 text-gray-800 dark:text-gray-300"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -175,7 +175,7 @@ export const RegisterPage = () => {
             </div>
 
             <div className="relative">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-800">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-800 dark:text-gray-300">
                 Confirm password
               </label>
               <input
@@ -184,8 +184,8 @@ export const RegisterPage = () => {
                 type={showConfirmPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                  errors.confirm_password ? 'border-red-300' : 'border-gray-300'
-                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                  errors.confirm_password ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                } placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                 placeholder="Confirm password"
               />
               <button
@@ -195,7 +195,7 @@ export const RegisterPage = () => {
               >
                 {showConfirmPassword ? (
                   <svg
-                    className="h-5 w-5 text-gray-800"
+                    className="h-5 w-5 text-gray-800 dark:text-gray-300"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -209,7 +209,7 @@ export const RegisterPage = () => {
                   </svg>
                 ) : (
                   <svg
-                    className="h-5 w-5 text-gray-800"
+                    className="h-5 w-5 text-gray-800 dark:text-gray-300"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

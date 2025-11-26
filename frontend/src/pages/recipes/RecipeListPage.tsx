@@ -95,7 +95,7 @@ export const RecipeListPage = () => {
 
         {/* Results count */}
         {searchQuery && (
-          <p className="mt-2 text-sm text-gray-800">
+          <p className="mt-2 text-sm text-gray-800 dark:text-gray-300">
             Found {filteredRecipes.length} recipe(s)
           </p>
         )}

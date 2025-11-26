@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { Layout } from '../components/layout';
 import { LoadingSpinner } from '../components/ui';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { ProfileForm, ChangePasswordForm } from '../components/profile';
 import type { UpdateProfileFormData, ChangePasswordFormData } from '../schemas/profile.schema';
 import { apiClient } from '../services/api';
@@ -15,7 +16,7 @@ import { apiClient } from '../services/api';
 export const ProfilePage = () => {
   const { user, refreshUser } = useAuth();
   const { families } = useFamily();
-  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'families'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'families' | 'settings'>('profile');
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -115,6 +116,16 @@ export const ProfilePage = () => {
             >
               Families
             </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`${
+                activeTab === 'settings'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-800 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Settings
+            </button>
           </nav>
         </div>
 
@@ -174,6 +185,20 @@ export const ProfilePage = () => {
                     You are not a member of any families yet
                   </p>
                 )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Application Settings
+              </h2>
+              <p className="text-sm text-gray-800 dark:text-gray-300 mb-6">
+                Customize your MealTogether experience
+              </p>
+              <div className="space-y-4">
+                <ThemeToggle />
               </div>
             </div>
           )}

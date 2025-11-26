@@ -60,7 +60,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-semibold text-gray-900 dark:text-white">Add New Item</h3>
         <button
@@ -87,7 +87,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
           {...register('name', { required: 'Item name is required' })}
           type="text"
           id="name"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="e.g., Milk"
           autoFocus
         />
@@ -106,7 +106,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
             {...register('quantity')}
             type="text"
             id="quantity"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="e.g., 2 gallons"
           />
         </div>
@@ -118,7 +118,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
           <select
             {...register('category')}
             id="category"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Select category</option>
             {CATEGORIES.map((cat) => (
@@ -139,7 +139,7 @@ export const ShoppingItemForm = ({ onAdd, isAdding }: ShoppingItemFormProps) => 
           {...register('notes')}
           id="notes"
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Any additional notes..."
         />
       </div>

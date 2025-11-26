@@ -118,7 +118,7 @@ export const RecipeDetailPage = () => {
               {recipe.name}
             </h1>
             {recipe.description && (
-              <p className="text-lg text-gray-800">{recipe.description}</p>
+              <p className="text-lg text-gray-800 dark:text-gray-300">{recipe.description}</p>
             )}
           </div>
 
@@ -128,7 +128,7 @@ export const RecipeDetailPage = () => {
               <>
                 <Link
                   to={`/recipes/${recipe.id}/edit`}
-                  className="bg-gray-100 text-gray-800 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                  className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
                 >
                   <svg
                     className="w-5 h-5"
@@ -277,10 +277,10 @@ export const RecipeDetailPage = () => {
               {recipe.timers.map((timer) => (
                 <li
                   key={timer.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                 >
                   <span className="font-medium text-gray-900 dark:text-white">{timer.name}</span>
-                  <span className="text-gray-800">
+                  <span className="text-gray-800 dark:text-gray-300">
                     {Math.floor(timer.duration / 60)}:
                     {String(timer.duration % 60).padStart(2, '0')}
                   </span>
@@ -294,7 +294,7 @@ export const RecipeDetailPage = () => {
       </div>
 
       {/* Cooking Steps */}
-      <div className="bg-white rounded-lg shadow p-6 border border-gray-200 mt-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700 mt-8">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <svg
             className="w-6 h-6 text-blue-600"
@@ -315,7 +315,7 @@ export const RecipeDetailPage = () => {
       </div>
 
       {/* Additional Info */}
-      <div className="mt-8 text-sm text-gray-800">
+      <div className="mt-8 text-sm text-gray-800 dark:text-gray-300">
         {recipe.assigned_to && (
           <p>Assigned to: {recipe.assigned_to.full_name}</p>
         )}

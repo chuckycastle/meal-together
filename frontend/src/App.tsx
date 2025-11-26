@@ -13,6 +13,7 @@ import { WebSocketErrorNotification } from './components/ui/WebSocketErrorNotifi
 import { AuthProvider } from './contexts/AuthContext';
 import { FamilyProvider } from './contexts/FamilyContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Lazy load devtools only in development
 const ReactQueryDevtools = import.meta.env.DEV
@@ -26,23 +27,25 @@ const ReactQueryDevtools = import.meta.env.DEV
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <FamilyProvider>
-              <WebSocketProvider>
-                <AppRoutes />
-                <WebSocketErrorNotification />
-              </WebSocketProvider>
-            </FamilyProvider>
-          </AuthProvider>
-        </BrowserRouter>
-        {import.meta.env.DEV && (
-          <Suspense fallback={null}>
-            <ReactQueryDevtools initialIsOpen={false} />
-          </Suspense>
-        )}
-      </QueryClientProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AuthProvider>
+              <FamilyProvider>
+                <WebSocketProvider>
+                  <AppRoutes />
+                  <WebSocketErrorNotification />
+                </WebSocketProvider>
+              </FamilyProvider>
+            </AuthProvider>
+          </BrowserRouter>
+          {import.meta.env.DEV && (
+            <Suspense fallback={null}>
+              <ReactQueryDevtools initialIsOpen={false} />
+            </Suspense>
+          )}
+        </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
