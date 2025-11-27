@@ -34,6 +34,7 @@ class ImportedRecipe(BaseModel):
     prep_time: int = Field(default=0, ge=0, le=1440)  # minutes (matches DB)
     cook_time: int = Field(default=0, ge=0, le=1440)  # minutes (matches DB)
     servings: int = Field(default=4, ge=1, le=100)
+    image_url: str = Field(default="", max_length=500, description="Recipe image URL or empty string if not available")
     source_url: str
     ingredients: List[ImportedIngredient] = Field(..., min_items=1, max_items=50)
     steps: List[ImportedStep] = Field(..., min_items=1, max_items=30)

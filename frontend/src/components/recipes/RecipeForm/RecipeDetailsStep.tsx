@@ -32,7 +32,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
       setValue('prep_time', recipe.prep_time);
       setValue('cook_time', recipe.cook_time);
       setValue('servings', recipe.servings);
-      setValue('image_url', ''); // Not included in import
+      setValue('image_url', recipe.image_url || '');
       // source_url is already set
 
       // Pre-fill ingredients
@@ -215,7 +215,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  Import & Clean with AI
+                  Import
                 </>
               )}
             </button>

@@ -20,6 +20,7 @@ LLM_PROMPT = """You are a recipe normalizer. Return ONLY valid JSON matching thi
   "prep_time": number,  // minutes (integer, 0-1440)
   "cook_time": number,  // minutes (integer, 0-1440)
   "servings": number,  // integer (1-100)
+  "image_url": "string (0-500 chars) - Recipe image URL if found in source data. MUST be empty string if not found. DO NOT fabricate or invent URLs.",
   "ingredients": [
     {
       "name": "string (1-200 chars)",
@@ -37,11 +38,14 @@ LLM_PROMPT = """You are a recipe normalizer. Return ONLY valid JSON matching thi
 
 Rules:
 - Keep steps concise and imperative (e.g., "Preheat oven to 350°F")
+- Extract prep_time and cook_time in minutes from source data. If missing, estimate based on recipe complexity.
 - Extract estimated_time from step text in MINUTES (e.g., "bake 20 minutes" → estimated_time: 20)
 - If step mentions "1 hour", convert to 60 minutes
 - If multiple times in one step, pick the longest
 - Set null if no duration mentioned
-- Don't invent data - use null if uncertain
+- For image_url: Leave as empty string if no image URL found in source. NEVER invent or generate placeholder image URLs.
+- Preserve source URLs exactly as provided - do not modify them
+- Don't invent data - use null or empty string if uncertain
 - Preserve chronological order
 - Normalize units (cups → c, tablespoon → tbsp, etc.)
 - Combine duplicate ingredients

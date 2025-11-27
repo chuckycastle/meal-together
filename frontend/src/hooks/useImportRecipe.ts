@@ -3,15 +3,12 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
-import { authService } from '../services/auth';
+import apiClient from '../services/api';
 import { useFamily } from '../contexts/FamilyContext';
 import type {
   ImportRecipeRequest,
   ImportResponse,
 } from '../types/recipe-import';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface UseImportRecipeOptions {
   onSuccess?: (data: ImportResponse) => void;
@@ -31,19 +28,11 @@ export function useImportRecipe(options?: UseImportRecipeOptions) {
         throw new Error('No family selected');
       }
 
-      const token = authService.getAccessToken();
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const response = await axios.post<ImportResponse>(
-        `${API_URL}/api/families/${activeFamily.id}/recipes/import`,
+      // Use API client - auth handled by interceptor
+      const response = await apiClient.post<ImportResponse>(
+        `/api/families/${activeFamily.id}/recipes/import`,
         request,
         {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
           timeout: 30000, // 30 second timeout for LLM processing
         }
       );

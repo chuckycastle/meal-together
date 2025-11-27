@@ -67,6 +67,163 @@ def parse_duration_to_seconds(text: str) -> int | None:
     return None
 
 
+def parse_iso8601_duration(duration_str: str) -> int | None:
+    """
+    Parse ISO 8601 duration to minutes.
+    Examples: "PT30M" → 30, "PT1H" → 60, "PT1H30M" → 90, "P1DT2H" → 1560
+
+    Args:
+        duration_str: ISO 8601 duration string
+
+    Returns:
+        Duration in minutes or None if parsing fails
+    """
+    if not duration_str or not isinstance(duration_str, str):
+        return None
+
+    # ISO 8601 format: P[n]Y[n]M[n]DT[n]H[n]M[n]S
+    # We only care about hours and minutes for recipes
+    try:
+        total_minutes = 0
+
+        # Match days (convert to hours)
+        days_match = re.search(r'P.*?(\d+)D', duration_str)
+        if days_match:
+            total_minutes += int(days_match.group(1)) * 24 * 60
+
+        # Match hours
+        hours_match = re.search(r'T.*?(\d+)H', duration_str)
+        if hours_match:
+            total_minutes += int(hours_match.group(1)) * 60
+
+        # Match minutes
+        minutes_match = re.search(r'T.*?(\d+)M', duration_str)
+        if minutes_match:
+            total_minutes += int(minutes_match.group(1))
+
+        return total_minutes if total_minutes > 0 else None
+
+    except Exception:
+        return None
+
+
+def parse_duration_flexible(duration_value: str | int | None) -> int | None:
+    """
+    Parse duration from multiple formats to minutes.
+    Tries ISO 8601 first, then human-readable text.
+
+    Args:
+        duration_value: Duration as ISO 8601, text, or number
+
+    Returns:
+        Duration in minutes or None if parsing fails
+    """
+    if not duration_value:
+        return None
+
+    # If already a number, assume it's minutes
+    if isinstance(duration_value, (int, float)):
+        return int(duration_value)
+
+    # Try ISO 8601 first (PT30M, PT1H, etc.)
+    iso_result = parse_iso8601_duration(duration_value)
+    if iso_result is not None:
+        return iso_result
+
+    # Fallback to human text ("30 minutes", "1 hour 15 minutes")
+    text_result_secs = parse_duration_to_seconds(duration_value)
+    if text_result_secs is not None:
+        return text_result_secs // 60  # Convert seconds to minutes
+
+    return None
+
+
+def parse_servings(recipe_yield) -> int | None:
+    """
+    Parse servings from recipeYield field.
+
+    Strategy:
+    - Range ("4-6", "Serves 4-6"): Take FIRST value (4)
+    - Array (["4", "6"]): Take FIRST parseable value
+    - Object ({"value": "4"}): Extract value field
+    - Number (4): Use directly
+    - Text ("4 servings"): Extract first number
+    - Unparseable: Return None (will default to 4)
+
+    Args:
+        recipe_yield: recipeYield value from JSON-LD (various formats)
+
+    Returns:
+        Number of servings or None if unparseable
+    """
+    if not recipe_yield:
+        return None
+
+    # Handle number directly
+    if isinstance(recipe_yield, (int, float)):
+        return int(recipe_yield)
+
+    # Handle array - take first parseable value
+    if isinstance(recipe_yield, list):
+        for item in recipe_yield:
+            result = parse_servings(item)  # Recursive
+            if result:
+                return result
+        return None
+
+    # Handle object (e.g., {"value": "4"} or {"@value": "4"})
+    if isinstance(recipe_yield, dict):
+        value = recipe_yield.get('value') or recipe_yield.get('@value')
+        if value:
+            return parse_servings(value)  # Recursive
+        return None
+
+    # Handle string
+    if isinstance(recipe_yield, str):
+        # Extract all numbers from string
+        numbers = re.findall(r'\d+', recipe_yield)
+        if numbers:
+            # Take first number (handles ranges like "4-6")
+            return int(numbers[0])
+
+    return None
+
+
+def extract_image_url(json_ld: dict) -> str:
+    """
+    Extract image URL from JSON-LD Recipe schema.
+    Handles string, object, and array formats.
+
+    Args:
+        json_ld: Parsed JSON-LD Recipe object
+
+    Returns:
+        Image URL or empty string if not found
+    """
+    image = json_ld.get('image', '')
+
+    if not image:
+        return ''
+
+    # Handle string format
+    if isinstance(image, str):
+        return image
+
+    # Handle object format: {"url": "...", "@type": "ImageObject"}
+    if isinstance(image, dict):
+        return image.get('url', '') or image.get('@id', '')
+
+    # Handle array format: [{"url": "..."}, ...] or ["https://...", ...]
+    if isinstance(image, list) and len(image) > 0:
+        first_image = image[0]
+        if isinstance(first_image, dict):
+            return first_image.get('url', '') or first_image.get('@id', '')
+        elif isinstance(first_image, str):
+            return first_image
+
+    return ''
+
+
 def derive_timers_from_steps(steps: list) -> list:
     """
     Derive recipe timers from steps with estimated_time.
@@ -158,6 +315,30 @@ def extract_heuristic(html: str) -> dict:
     else:
         name = name.get_text().strip()
 
+    # Extract image (Open Graph, schema.org, or first large image)
+    image_url = ''
+
+    # Try Open Graph image
+    og_image = soup.find('meta', property='og:image')
+    if og_image:
+        image_url = og_image.get('content', '')
+
+    # Fallback to schema.org image
+    if not image_url:
+        schema_image = soup.find('img', itemprop='image')
+        if schema_image:
+            image_url = schema_image.get('src', '')
+
+    # Fallback to first large image (width > 300px or no width specified)
+    if not image_url:
+        for img in soup.find_all('img'):
+            width = img.get('width')
+            if not width or (width.isdigit() and int(width) > 300):
+                src = img.get('src', '')
+                if src and ('http' in src or src.startswith('//')):
+                    image_url = src
+                    break
+
     # Extract ingredients
     ingredients = []
     for tag in soup.find_all(['ul', 'ol']):
@@ -217,6 +398,7 @@ def extract_heuristic(html: str) -> dict:
         "prep_time": 0,
         "cook_time": 0,
         "servings": 4,
+        "image_url": truncate_text(image_url, 500),
         "ingredients": ingredients[:MAX_INGREDIENTS],
         "steps": steps[:MAX_STEPS]
     }
@@ -300,7 +482,11 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
         """), {"hash": url_hash}).fetchone()
 
         if cached:
-            return ImportedRecipe(**cached[0]), "cached"
+            cached_data = cached[0]
+            # Handle legacy cache entries without image_url field
+            if 'image_url' not in cached_data:
+                cached_data['image_url'] = ""
+            return ImportedRecipe(**cached_data), "cached"
 
     except Exception as e:
         print(f"Cache check failed: {e}")
@@ -315,13 +501,30 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
     raw_data = None
 
     if json_ld:
+        # Parse times with flexible parser (ISO 8601 + text)
+        prep_time = parse_duration_flexible(json_ld.get('prepTime'))
+        cook_time = parse_duration_flexible(json_ld.get('cookTime'))
+        total_time = parse_duration_flexible(json_ld.get('totalTime'))
+
+        # Fallback: if totalTime exists but prep/cook missing, use total as cook_time
+        if total_time and not (prep_time and cook_time):
+            cook_time = cook_time or total_time
+            prep_time = prep_time or 0
+
+        # Parse servings
+        servings = parse_servings(json_ld.get('recipeYield')) or 4
+
+        # Extract image URL
+        image_url = extract_image_url(json_ld)
+
         # Parse JSON-LD data
         raw_data = {
             "name": truncate_text(json_ld.get('name', 'Recipe'), 200),
             "description": truncate_text(json_ld.get('description', ''), 1000),
-            "prep_time": 0,  # Will be extracted/normalized by LLM
-            "cook_time": 0,
-            "servings": 4,
+            "prep_time": prep_time if prep_time is not None else 0,
+            "cook_time": cook_time if cook_time is not None else 0,
+            "servings": servings,
+            "image_url": truncate_text(image_url, 500),
             "ingredients": [
                 {
                     "name": truncate_text(str(ing), MAX_INGREDIENT_CHARS),
@@ -349,9 +552,20 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
     # Enforce input limits before LLM call
     raw_data = enforce_input_limits(raw_data)
 
+    # Store pre-parsed step durations before LLM
+    original_step_durations = {}
+    for i, step in enumerate(raw_data.get('steps', [])):
+        if step.get('estimated_time'):
+            original_step_durations[i] = step['estimated_time']
+
     # Try LLM normalization (Claude → GPT)
     llm_result = normalize_recipe_with_llm(raw_data)
     if llm_result:
+        # Preserve pre-parsed durations if LLM didn't provide them
+        for i, step in enumerate(llm_result.get('steps', [])):
+            if i in original_step_durations and not step.get('estimated_time'):
+                step['estimated_time'] = original_step_durations[i]
+
         raw_data = llm_result
         extraction_method = "ai"
 

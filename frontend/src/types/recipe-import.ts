@@ -26,6 +26,7 @@ export interface ImportedRecipe {
   prep_time: number; // minutes
   cook_time: number; // minutes
   servings: number;
+  image_url?: string; // Optional - may be empty string
   source_url: string;
   ingredients: ImportedIngredient[];
   steps: ImportedStep[];
