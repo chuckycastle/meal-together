@@ -3,12 +3,16 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
-import apiClient from '../services/api';
+import axios from 'axios';
+import { authService } from '../services/auth';
+import { featureFlags } from '../config/featureFlags';
 import { useFamily } from '../contexts/FamilyContext';
 import type {
   ImportRecipeRequest,
   ImportResponse,
 } from '../types/recipe-import';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface UseImportRecipeOptions {
   onSuccess?: (data: ImportResponse) => void;
@@ -28,11 +32,24 @@ export function useImportRecipe(options?: UseImportRecipeOptions) {
         throw new Error('No family selected');
       }
 
-      // Use API client's axios instance - auth handled by interceptor
-      const response = await (apiClient as any).client.post<ImportResponse>(
-        `/api/families/${activeFamily.id}/recipes/import`,
+      // Build headers with auth token (if not using Supabase)
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add Flask JWT token if not in Supabase mode
+      if (!featureFlags.supabase_auth) {
+        const token = authService.getAccessToken();
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+      }
+
+      const response = await axios.post<ImportResponse>(
+        `${API_URL}/api/families/${activeFamily.id}/recipes/import`,
         request,
         {
+          headers,
           timeout: 30000, // 30 second timeout for LLM processing
         }
       );
