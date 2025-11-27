@@ -450,9 +450,10 @@ def extract_heuristic(html: str) -> dict:
                 for li in tag.find_all('li'):
                     text = li.get_text().strip()
                     if text and len(text) > 2:  # Avoid empty or single-char items
+                        qty, name = parse_ingredient_string(text)
                         ingredients.append({
-                            "name": truncate_text(text, MAX_INGREDIENT_CHARS),
-                            "quantity": ""
+                            "name": truncate_text(name, MAX_INGREDIENT_CHARS),
+                            "quantity": truncate_text(qty, MAX_INGREDIENT_CHARS)
                         })
 
     # Extract steps with duration detection
@@ -653,27 +654,37 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
     # Enforce input limits before LLM call
     raw_data = enforce_input_limits(raw_data)
 
-    # Store pre-parsed times and step durations before LLM
+    # Store pre-parsed times, servings, and step durations before LLM
     original_prep_time = raw_data.get('prep_time', 0)
     original_cook_time = raw_data.get('cook_time', 0)
+    original_servings = raw_data.get('servings', 4)
     original_step_durations = {}
     for i, step in enumerate(raw_data.get('steps', [])):
         if step.get('estimated_time'):
             original_step_durations[i] = step['estimated_time']
 
+    print(f"[DEBUG] Pre-LLM: prep={original_prep_time}min, cook={original_cook_time}min, servings={original_servings}")
+    print(f"[DEBUG] Pre-LLM step durations: {original_step_durations}")
+
     # Try LLM normalization (Claude → GPT)
     llm_result = normalize_recipe_with_llm(raw_data)
     if llm_result:
-        # Preserve pre-parsed durations if LLM didn't provide them or returned 0
+        # ALWAYS preserve pre-parsed values over LLM (our parsing is more reliable)
+        # LLM may hallucinate or misinterpret durations from structured data
+        if original_prep_time > 0:
+            llm_result['prep_time'] = original_prep_time
+        if original_cook_time > 0:
+            llm_result['cook_time'] = original_cook_time
+        if original_servings != 4:
+            llm_result['servings'] = original_servings
+
+        # ALWAYS preserve pre-parsed step durations
         for i, step in enumerate(llm_result.get('steps', [])):
-            if i in original_step_durations and not step.get('estimated_time'):
+            if i in original_step_durations:
                 step['estimated_time'] = original_step_durations[i]
 
-        # Preserve non-zero prep/cook times if LLM returns 0
-        if original_prep_time > 0 and llm_result.get('prep_time', 0) == 0:
-            llm_result['prep_time'] = original_prep_time
-        if original_cook_time > 0 and llm_result.get('cook_time', 0) == 0:
-            llm_result['cook_time'] = original_cook_time
+        print(f"[DEBUG] Post-LLM: prep={llm_result.get('prep_time')}min, cook={llm_result.get('cook_time')}min, servings={llm_result.get('servings')}")
+        print(f"[DEBUG] Steps with durations: {sum(1 for s in llm_result.get('steps', []) if s.get('estimated_time'))}/{len(llm_result.get('steps', []))}")
 
         raw_data = llm_result
         extraction_method = "ai"
@@ -683,6 +694,7 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
 
     # DERIVE TIMERS from steps with estimated_time
     raw_data['timers'] = derive_timers_from_steps(raw_data.get('steps', []))
+    print(f"[DEBUG] Derived {len(raw_data['timers'])} timers from {len(raw_data.get('steps', []))} steps")
 
     # Validate with Pydantic (enforces final schema)
     recipe = ImportedRecipe(**raw_data)
