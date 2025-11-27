@@ -26,7 +26,7 @@ export const IngredientsStep = ({ register, control, errors }: IngredientsStepPr
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">Ingredients</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Ingredients</h2>
         <button
           type="button"
           onClick={addIngredient}
@@ -44,8 +44,8 @@ export const IngredientsStep = ({ register, control, errors }: IngredientsStepPr
       )}
 
       {fields.length === 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-800 mb-4">No ingredients added yet</p>
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 text-center">
+          <p className="text-gray-800 dark:text-gray-300 mb-4">No ingredients added yet</p>
           <button
             type="button"
             onClick={addIngredient}
@@ -58,23 +58,23 @@ export const IngredientsStep = ({ register, control, errors }: IngredientsStepPr
 
       <div className="space-y-3">
         {fields.map((field, index) => (
-          <div key={field.id} className="bg-white border border-gray-200 rounded-lg p-4">
+          <div key={field.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold text-sm">
                   {index + 1}
                 </span>
               </div>
 
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">
+                  <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
                     Ingredient Name *
                   </label>
                   <input
                     {...register(`ingredients.${index}.name`)}
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     placeholder="e.g., Chicken breast"
                   />
                   {errors.ingredients?.[index]?.name && (
@@ -85,13 +85,13 @@ export const IngredientsStep = ({ register, control, errors }: IngredientsStepPr
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">
+                  <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
                     Quantity
                   </label>
                   <input
                     {...register(`ingredients.${index}.quantity`)}
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     placeholder="e.g., 2 lbs"
                   />
                 </div>
@@ -116,7 +116,7 @@ export const IngredientsStep = ({ register, control, errors }: IngredientsStepPr
         <button
           type="button"
           onClick={addIngredient}
-          className="w-full bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

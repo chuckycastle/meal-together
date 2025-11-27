@@ -74,18 +74,18 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">Recipe Details</h2>
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Recipe Details</h2>
 
       {/* Recipe Name */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-800 mb-1">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
           Recipe Name *
         </label>
         <input
           {...register('name')}
           type="text"
           id="name"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
           placeholder="e.g., Chicken Parmesan"
         />
         {errors.name && (
@@ -95,14 +95,14 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
 
       {/* Description */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-800 mb-1">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
           Description
         </label>
         <textarea
           {...register('description')}
           id="description"
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
           placeholder="Describe your recipe..."
         />
         {errors.description && (
@@ -113,7 +113,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
       {/* Time Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label htmlFor="prep_time" className="block text-sm font-medium text-gray-800 mb-1">
+          <label htmlFor="prep_time" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
             Prep Time (minutes) *
           </label>
           <input
@@ -121,7 +121,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
             type="number"
             id="prep_time"
             min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             placeholder="15"
           />
           {errors.prep_time && (
@@ -130,7 +130,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
         </div>
 
         <div>
-          <label htmlFor="cook_time" className="block text-sm font-medium text-gray-800 mb-1">
+          <label htmlFor="cook_time" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
             Cook Time (minutes) *
           </label>
           <input
@@ -138,7 +138,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
             type="number"
             id="cook_time"
             min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             placeholder="30"
           />
           {errors.cook_time && (
@@ -147,7 +147,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
         </div>
 
         <div>
-          <label htmlFor="servings" className="block text-sm font-medium text-gray-800 mb-1">
+          <label htmlFor="servings" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
             Servings *
           </label>
           <input
@@ -156,7 +156,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
             id="servings"
             min="1"
             max="100"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             placeholder="4"
           />
           {errors.servings && (
@@ -167,14 +167,14 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
 
       {/* Image URL */}
       <div>
-        <label htmlFor="image_url" className="block text-sm font-medium text-gray-800 mb-1">
+        <label htmlFor="image_url" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
           Image URL
         </label>
         <input
           {...register('image_url')}
           type="url"
           id="image_url"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
           placeholder="https://example.com/image.jpg"
         />
         {errors.image_url && (
@@ -184,7 +184,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
 
       {/* Source URL with AI Import */}
       <div>
-        <label htmlFor="source_url" className="block text-sm font-medium text-gray-800 mb-1">
+        <label htmlFor="source_url" className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
           Source URL
         </label>
         <div className="flex gap-2">
@@ -192,7 +192,7 @@ export const RecipeDetailsStep = ({ register, errors, setValue, watch }: RecipeD
             {...register('source_url')}
             type="url"
             id="source_url"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             placeholder="https://example.com/recipe"
           />
           {featureFlags.recipe_ai_import && setValue && watch && (
