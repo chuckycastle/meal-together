@@ -407,6 +407,124 @@ def derive_timers_from_steps(steps: list) -> list:
     return timers
 
 
+def map_llm_to_imported_recipe(llm_data: dict, source_url: str) -> dict:
+    """
+    Map LLM output (LLMNormalizedRecipe) to ImportedRecipe schema.
+
+    Converts:
+    - prep_time_minutes → prep_time
+    - cook_time_minutes → cook_time
+    - timers (with duration_minutes) → timers (with duration in seconds)
+    - Adds source_url
+    - Generates placeholder step (ImportedRecipe requires min 1 step)
+
+    Args:
+        llm_data: LLM output dict matching LLMNormalizedRecipe schema
+        source_url: Original recipe URL
+
+    Returns:
+        Dict matching ImportedRecipe schema
+    """
+    # Convert timer durations from minutes to seconds (database expects seconds)
+    timers = [
+        {
+            "name": timer["description"],
+            "duration": timer["duration_minutes"] * 60,  # Convert to seconds
+            "step_order": None  # LLM doesn't know step order
+        }
+        for timer in llm_data.get("timers", [])
+    ]
+
+    # Generate placeholder step (ImportedRecipe requires min_items=1)
+    # In future, we could extract from original instructions if needed
+    steps = [
+        {
+            "order": 1,
+            "instruction": "Follow recipe instructions from source",
+            "estimated_time": None
+        }
+    ]
+
+    return {
+        "name": llm_data["name"],
+        "description": llm_data.get("description", ""),
+        "prep_time": llm_data["prep_time_minutes"],  # Map field name
+        "cook_time": llm_data["cook_time_minutes"],  # Map field name
+        "servings": llm_data["servings"],
+        "image_url": llm_data.get("image_url", ""),
+        "source_url": source_url,
+        "ingredients": [
+            {
+                "name": ing["name"],
+                "quantity": ing["quantity"]
+            }
+            for ing in llm_data["ingredients"]
+        ],
+        "steps": steps,
+        "timers": timers
+    }
+
+
+def fallback_regex_parse(structured_data: dict, source_url: str) -> dict:
+    """
+    Emergency fallback if LLM fails completely.
+    Uses regex-based parsing logic (old approach).
+
+    Args:
+        structured_data: JSON-LD or heuristic data
+        source_url: Original URL
+
+    Returns:
+        Dict matching ImportedRecipe schema
+    """
+    # Parse ingredients with regex (old logic)
+    ingredients = [
+        {
+            "quantity": truncate_text(qty, MAX_INGREDIENT_CHARS),
+            "name": truncate_text(name, MAX_INGREDIENT_CHARS)
+        }
+        for ing in structured_data.get('recipeIngredient', [])[:MAX_INGREDIENTS]
+        for qty, name in [parse_ingredient_string(str(ing))]
+    ]
+
+    # Parse steps with duration extraction (old logic)
+    steps = [
+        {
+            "order": i + 1,
+            "instruction": truncate_text(
+                step_text := (step.get('text', step) if isinstance(step, dict) else str(step)),
+                MAX_STEP_CHARS
+            ),
+            "estimated_time": (parse_duration_to_seconds(step_text) // 60) if parse_duration_to_seconds(step_text) else None
+        }
+        for i, step in enumerate(structured_data.get('recipeInstructions', [])[:MAX_STEPS])
+    ]
+
+    # Ensure at least one step (required by schema)
+    if not steps:
+        steps = [{
+            "order": 1,
+            "instruction": "Follow recipe instructions from source",
+            "estimated_time": None
+        }]
+
+    # Derive timers from steps (old logic)
+    timers = derive_timers_from_steps(steps)
+
+    return {
+        "name": structured_data.get("name", "Recipe"),
+        "description": structured_data.get("description", ""),
+        "prep_time": structured_data.get("prep_time", 0),
+        "cook_time": structured_data.get("cook_time", 0),
+        "servings": structured_data.get("servings", 4),
+        "image_url": structured_data.get("image_url", ""),
+        "source_url": source_url,
+        "ingredients": ingredients,
+        "steps": steps,
+        "timers": timers
+    }
+
+
 def extract_json_ld(html: str) -> dict | None:
     """
     Extract JSON-LD Recipe schema from HTML.
@@ -644,10 +762,10 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
     # Try JSON-LD extraction first
     json_ld = extract_json_ld(html)
     extraction_method = "heuristic"
-    raw_data = None
+    structured_data = None
 
     if json_ld:
-        # Parse times with flexible parser (ISO 8601 + text)
+        # Parse times with flexible parser (ISO 8601 + text) - DETERMINISTIC, KEEP THIS
         prep_time = parse_duration_flexible(json_ld.get('prepTime'))
         cook_time = parse_duration_flexible(json_ld.get('cookTime'))
         total_time = parse_duration_flexible(json_ld.get('totalTime'))
@@ -657,89 +775,78 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
             cook_time = cook_time or total_time
             prep_time = prep_time or 0
 
-        # Parse servings
+        # Parse servings - DETERMINISTIC, KEEP THIS
         servings = parse_servings(json_ld.get('recipeYield')) or 4
 
-        # Extract image URL
+        # Extract image URL - DETERMINISTIC, KEEP THIS
         image_url = extract_image_url(json_ld)
 
-        # Parse JSON-LD data
-        raw_data = {
+        # Build structured data with RAW ingredients/instructions for LLM
+        # LLM will split ingredients and extract timers from instructions
+        structured_data = {
             "name": truncate_text(json_ld.get('name', 'Recipe'), 200),
             "description": truncate_text(json_ld.get('description', ''), 1000),
             "prep_time": prep_time if prep_time is not None else 0,
             "cook_time": cook_time if cook_time is not None else 0,
+            "total_time": total_time if total_time is not None else 0,
             "servings": servings,
             "image_url": truncate_text(image_url, 500),
-            "ingredients": [
-                {
-                    "quantity": truncate_text(qty, MAX_INGREDIENT_CHARS),
-                    "name": truncate_text(name, MAX_INGREDIENT_CHARS)
-                }
+            # RAW ingredients - LLM will split quantity/name
+            "recipeIngredient": [
+                truncate_text(str(ing), MAX_INGREDIENT_CHARS)
                 for ing in json_ld.get('recipeIngredient', [])[:MAX_INGREDIENTS]
-                for qty, name in [parse_ingredient_string(str(ing))]
             ],
-            "steps": [
-                {
-                    "order": i + 1,
-                    "instruction": truncate_text(
-                        step_text := (step.get('text', step) if isinstance(step, dict) else str(step)),
-                        MAX_STEP_CHARS
-                    ),
-                    "estimated_time": (parse_duration_to_seconds(step_text) // 60) if parse_duration_to_seconds(step_text) else None
-                }
-                for i, step in enumerate(json_ld.get('recipeInstructions', [])[:MAX_STEPS])
+            # RAW instructions - LLM will extract timers
+            "recipeInstructions": [
+                truncate_text(
+                    step.get('text', step) if isinstance(step, dict) else str(step),
+                    MAX_STEP_CHARS
+                )
+                for step in json_ld.get('recipeInstructions', [])[:MAX_STEPS]
             ]
         }
         extraction_method = "json-ld"
     else:
         # Fallback to heuristic extraction
-        raw_data = extract_heuristic(html)
+        heuristic_data = extract_heuristic(html)
 
-    # Enforce input limits before LLM call
-    raw_data = enforce_input_limits(raw_data)
+        # Convert heuristic data to structured_data format
+        structured_data = {
+            "name": heuristic_data.get('name', 'Recipe'),
+            "description": heuristic_data.get('description', ''),
+            "prep_time": heuristic_data.get('prep_time', 0),
+            "cook_time": heuristic_data.get('cook_time', 0),
+            "total_time": 0,
+            "servings": heuristic_data.get('servings', 4),
+            "image_url": heuristic_data.get('image_url', ''),
+            # Convert parsed ingredients back to raw strings
+            "recipeIngredient": [
+                f"{ing['quantity']} {ing['name']}".strip()
+                for ing in heuristic_data.get('ingredients', [])
+            ],
+            # Convert parsed steps to raw instruction strings
+            "recipeInstructions": [
+                step['instruction']
+                for step in heuristic_data.get('steps', [])
+            ]
+        }
 
-    # Store pre-parsed times, servings, and step durations before LLM
-    original_prep_time = raw_data.get('prep_time', 0)
-    original_cook_time = raw_data.get('cook_time', 0)
-    original_servings = raw_data.get('servings', 4)
-    original_step_durations = {}
-    for i, step in enumerate(raw_data.get('steps', [])):
-        if step.get('estimated_time'):
-            original_step_durations[i] = step['estimated_time']
+    print(f"[DEBUG] Pre-LLM: prep={structured_data.get('prep_time')}min, cook={structured_data.get('cook_time')}min, servings={structured_data.get('servings')}")
 
-    print(f"[DEBUG] Pre-LLM: prep={original_prep_time}min, cook={original_cook_time}min, servings={original_servings}")
-    print(f"[DEBUG] Pre-LLM step durations: {original_step_durations}")
+    # Try LLM normalization (Claude → GPT fallback)
+    llm_result = normalize_recipe_with_llm(structured_data)
 
-    # Try LLM normalization (Claude → GPT)
-    llm_result = normalize_recipe_with_llm(raw_data)
     if llm_result:
-        # ALWAYS preserve pre-parsed values over LLM (our parsing is more reliable)
-        # LLM may hallucinate or misinterpret durations from structured data
-        if original_prep_time > 0:
-            llm_result['prep_time'] = original_prep_time
-        if original_cook_time > 0:
-            llm_result['cook_time'] = original_cook_time
-        if original_servings != 4:
-            llm_result['servings'] = original_servings
-
-        # ALWAYS preserve pre-parsed step durations
-        for i, step in enumerate(llm_result.get('steps', [])):
-            if i in original_step_durations:
-                step['estimated_time'] = original_step_durations[i]
-
-        print(f"[DEBUG] Post-LLM: prep={llm_result.get('prep_time')}min, cook={llm_result.get('cook_time')}min, servings={llm_result.get('servings')}")
-        print(f"[DEBUG] Steps with durations: {sum(1 for s in llm_result.get('steps', []) if s.get('estimated_time'))}/{len(llm_result.get('steps', []))}")
-
-        raw_data = llm_result
+        # LLM succeeded - map to ImportedRecipe schema
+        raw_data = map_llm_to_imported_recipe(llm_result, url)
         extraction_method = "ai"
-
-    # Add source URL
-    raw_data['source_url'] = url
-
-    # DERIVE TIMERS from steps with estimated_time
-    raw_data['timers'] = derive_timers_from_steps(raw_data.get('steps', []))
-    print(f"[DEBUG] Derived {len(raw_data['timers'])} timers from {len(raw_data.get('steps', []))} steps")
+        print(f"[DEBUG] LLM Success: prep={llm_result.get('prep_time_minutes')}min, cook={llm_result.get('cook_time_minutes')}min, timers={len(llm_result.get('timers', []))}")
+    else:
+        # Both Claude and GPT failed - use regex fallback
+        print("[DEBUG] LLM failed, using regex fallback")
+        raw_data = fallback_regex_parse(structured_data, url)
+        extraction_method = "heuristic"
+        print(f"[DEBUG] Fallback: prep={raw_data.get('prep_time')}min, cook={raw_data.get('cook_time')}min, timers={len(raw_data.get('timers', []))}")
 
     # Validate with Pydantic (enforces final schema)
     recipe = ImportedRecipe(**raw_data)

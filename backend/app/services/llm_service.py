@@ -11,52 +11,53 @@ from openai import OpenAI
 from .circuit_breaker import can_attempt_llm, record_llm_success, record_llm_failure
 
 
-# LLM Prompt - EXACTLY aligned with Pydantic ImportedRecipe schema
-LLM_PROMPT = """You are a recipe normalizer. Return ONLY valid JSON matching this EXACT schema:
+# LLM Prompt - Simplified schema for recipe normalization
+LLM_PROMPT = """You are a recipe normalizer. You receive structured recipe data and return a cleaned, normalized JSON object.
+
+Return ONLY valid JSON matching this EXACT schema:
 
 {
   "name": "string (1-200 chars)",
-  "description": "string (0-1000 chars)",
-  "prep_time": number,  // minutes (integer, 0-1440)
-  "cook_time": number,  // minutes (integer, 0-1440)
-  "servings": number,  // integer (1-100)
-  "image_url": "string (0-500 chars) - Recipe image URL if found in source data. MUST be empty string if not found. DO NOT fabricate or invent URLs.",
+  "description": "string (0-1000 chars) - Optional summary. Empty string if not available.",
+  "prep_time_minutes": number,  // integer minutes (0-1440). Use input value or 0 if unknown.
+  "cook_time_minutes": number,  // integer minutes (0-1440). Use input value or 0 if unknown.
+  "servings": number,  // integer (1-100). Use input value or default to 4.
+  "image_url": "string (0-500 chars) - Image URL from input. Empty string if not found. NEVER invent URLs.",
   "ingredients": [
     {
-      "name": "string (1-200 chars)",
-      "quantity": "string (0-100 chars)"
+      "name": "string (1-200 chars) - Ingredient name WITHOUT quantity",
+      "quantity": "string (0-100 chars) - Amount with unit (e.g., '2 cups', '1 tsp', '3 large'). KEEP FRACTIONS AS FRACTIONS (e.g., '1/2', '1 1/4', '¾')."
     }
   ],
-  "steps": [
+  "timers": [
     {
-      "order": number,  // integer (1-50)
-      "instruction": "string (1-500 chars)",
-      "estimated_time": number | null  // minutes (integer, 0-28800) or null
+      "description": "string (1-200 chars) - What this timer is for (e.g., 'Bake cookies', 'Simmer sauce')",
+      "duration_minutes": number  // integer minutes (1-28800). Extract from instructions.
     }
   ]
 }
 
 Rules:
-- Keep steps concise and imperative (e.g., "Preheat oven to 350°F")
-- CRITICAL: If input has prep_time > 0, use that EXACT value (do not modify)
-- CRITICAL: If input has cook_time > 0, use that EXACT value (do not modify)
-- CRITICAL: If input has servings != 4, use that EXACT value (do not modify)
-- CRITICAL: If step has estimated_time > 0 in input, use that EXACT value (do not modify)
-- Extract times from text ONLY if input value is 0/null
-- NEVER return 0 for prep_time/cook_time if input has non-zero values
-- For time ranges, use MIDPOINT (e.g., "8 to 10 minutes" → estimated_time: 9, "30-45 minutes" → estimated_time: 38)
-- If step mentions "1 hour", convert to 60 minutes
-- Set null only if no duration mentioned and none in input
-- For ingredients: if quantity and name are already split in input, keep them split - do not merge
-- For image_url: Leave as empty string if no image URL found in source. NEVER invent or generate placeholder image URLs.
-- Preserve source URLs exactly as provided - do not modify them
-- Don't invent data - use null or empty string if uncertain
-- Preserve chronological order
-- Remove marketing language ("delicious", "perfect", etc.)
+1. **Times**: Use prep_time, cook_time, or total_time values from input if present. If missing or 0, set to 0.
+2. **Servings**: Use input servings value if present. Default to 4 only if completely missing.
+3. **Ingredients**:
+   - If input has separate quantity/name, keep them separate
+   - If input has combined string (e.g., "2 cups flour"), split into quantity="2 cups", name="flour"
+   - KEEP FRACTIONS AS FRACTIONS: "1/2 cup", "1 1/4 tsp", "¾ pound" (do NOT convert to decimals like 0.5 or 1.25)
+   - Normalize units: "tbsp" → "tablespoon", "oz" → "ounce", but keep common abbreviations
+4. **Timers**:
+   - Extract ALL mentioned durations from instructions (e.g., "bake for 20 minutes", "simmer 1 hour")
+   - Create one timer entry for each duration found
+   - Description should describe what happens (e.g., "Bake uncovered", "Simmer glaze", "Rest ham")
+   - For ranges (e.g., "8-10 minutes", "30 to 45 minutes"), use midpoint (9 minutes, 38 minutes)
+   - Convert hours to minutes (e.g., "1 hour" → 60, "2 hours" → 120)
+5. **Image URL**: Use exact URL from input. Empty string if missing. NEVER generate placeholder URLs.
+6. **Missing data**: Use empty string for text fields, 0 for times, empty arrays if uncertain.
+7. **Remove marketing language**: Remove words like "delicious", "perfect", "amazing" from descriptions.
 
-Return ONLY the JSON object. No markdown, no explanation.
+Return ONLY the JSON object. No markdown, no explanation, no code fences.
 
-Input recipe to normalize:
+Input recipe data:
 """
 
 
@@ -213,25 +214,58 @@ def call_gpt(payload: dict, timeout: int = 12) -> dict | None:
         return None
 
 
-def normalize_recipe_with_llm(raw_data: dict) -> dict | None:
+def build_llm_input(structured_data: dict) -> dict:
+    """
+    Build LLM input payload from structured JSON-LD/heuristic data.
+
+    Converts from extraction format to LLM-friendly format with ALL source data.
+
+    Args:
+        structured_data: Dict with keys like 'name', 'prep_time' (minutes),
+                        'recipeIngredient' (list of strings),
+                        'recipeInstructions' (list of strings/dicts)
+
+    Returns:
+        Dict formatted for LLM consumption
+    """
+    return {
+        "name": structured_data.get('name', ''),
+        "description": structured_data.get('description', ''),
+        "prep_time": structured_data.get('prep_time', 0),  # Already parsed to minutes
+        "cook_time": structured_data.get('cook_time', 0),  # Already parsed to minutes
+        "total_time": structured_data.get('total_time', 0),  # Fallback if prep/cook missing
+        "servings": structured_data.get('servings', 4),
+        "image_url": structured_data.get('image_url', ''),
+        "ingredients": structured_data.get('recipeIngredient', []),  # Raw strings like "2 cups flour"
+        "instructions": structured_data.get('recipeInstructions', [])  # List of step strings/dicts
+    }
+
+
+def normalize_recipe_with_llm(structured_data: dict) -> dict | None:
     """
     Normalize recipe using LLM.
     Tries Claude first, falls back to GPT on failure.
 
     Args:
-        raw_data: Raw recipe data (from JSON-LD or heuristic extraction)
+        structured_data: Structured recipe data (from JSON-LD or heuristic extraction)
+                        Expected fields: name, description, prep_time, cook_time,
+                                       servings, image_url, recipeIngredient (list),
+                                       recipeInstructions (list)
 
     Returns:
-        Normalized recipe dict or None if both LLMs fail
+        Normalized recipe dict matching LLMNormalizedRecipe schema or None if both LLMs fail
     """
+    # Build LLM input payload from structured data
+    llm_input = build_llm_input(structured_data)
+
     # Try Claude first (primary)
-    result = call_claude(raw_data)
+    result = call_claude(llm_input)
     if result:
         return result
 
     # Fallback to GPT
     print("Claude failed, trying GPT-4o...")
-    result = call_gpt(raw_data)
+    result = call_gpt(llm_input)
     if result:
         return result
 

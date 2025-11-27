@@ -27,6 +27,34 @@ class ImportedTimer(BaseModel):
     step_order: Optional[int] = Field(None, ge=1, le=50)
 
 
+class LLMTimer(BaseModel):
+    """Timer schema from LLM output (duration in minutes, not seconds)"""
+    description: str = Field(..., min_length=1, max_length=200)
+    duration_minutes: int = Field(..., ge=1, le=28800)
+
+
+class LLMNormalizedRecipe(BaseModel):
+    """Schema for LLM output - simpler than ImportedRecipe, matches LLM prompt schema"""
+    name: str = Field(..., min_length=1, max_length=200)
+    description: str = Field(default="", max_length=1000)
+    prep_time_minutes: int = Field(default=0, ge=0, le=1440)
+    cook_time_minutes: int = Field(default=0, ge=0, le=1440)
+    servings: int = Field(default=4, ge=1, le=100)
+    image_url: str = Field(default="", max_length=500)
+    ingredients: List[ImportedIngredient] = Field(..., min_items=1, max_items=50)
+    timers: List[LLMTimer] = Field(default_factory=list, max_items=20)
+
+    @validator('ingredients')
+    def truncate_ingredients(cls, v):
+        """Hard limit to max 50 ingredients"""
+        return v[:50]
+
+    @validator('timers')
+    def validate_and_truncate_timers(cls, v):
+        """Validate timer format and truncate to max 20"""
+        return v[:20]
+
+
 class ImportedRecipe(BaseModel):
     """Complete recipe schema - matches database Recipe model fields"""
     name: str = Field(..., min_length=1, max_length=200)
