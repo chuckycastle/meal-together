@@ -45,6 +45,27 @@ export const ShoppingListPage = () => {
   const updateItem = useUpdateItem(activeFamily?.id || 0, activeList?.id || 0);
   const deleteItem = useDeleteItem(activeFamily?.id || 0, activeList?.id || 0);
 
+  // Compute shopping list state (MUST be before early returns to maintain hook order)
+  const items = shoppingList?.items || [];
+
+  // Group items by category
+  const itemsByCategory = useMemo(() =>
+    items.reduce((acc, item) => {
+      const category = item.category || 'Uncategorized';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    }, {} as Record<string, ShoppingListItem[]>),
+    [items]
+  );
+
+  const categories = useMemo(() => Object.keys(itemsByCategory).sort(), [itemsByCategory]);
+  const completedCount = useMemo(() => items.filter((item) => item.checked).length, [items]);
+  const totalCount = items.length;
+  const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
   const handleCreateShoppingList = async () => {
     if (!activeFamily) return;
 
@@ -153,26 +174,6 @@ export const ShoppingListPage = () => {
       </Layout>
     );
   }
-
-  const items = shoppingList?.items || [];
-
-  // Group items by category
-  const itemsByCategory = useMemo(() =>
-    items.reduce((acc, item) => {
-      const category = item.category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(item);
-      return acc;
-    }, {} as Record<string, ShoppingListItem[]>),
-    [items]
-  );
-
-  const categories = useMemo(() => Object.keys(itemsByCategory).sort(), [itemsByCategory]);
-  const completedCount = useMemo(() => items.filter((item) => item.checked).length, [items]);
-  const totalCount = items.length;
-  const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   return (
     <Layout>

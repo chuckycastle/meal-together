@@ -5,6 +5,7 @@
 
 import axios from 'axios';
 import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { featureFlags } from '../config/featureFlags';
 import type {
   User,
   AuthTokens,
@@ -49,9 +50,14 @@ class ApiClient {
   }
 
   private setupInterceptors(): void {
-    // Request interceptor - add auth token
+    // Request interceptor - add auth token (only if not using Supabase auth)
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
+        // Skip Flask JWT if Supabase auth is enabled
+        if (featureFlags.supabase_auth) {
+          return config;
+        }
+
         const token = this.getAccessToken();
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;

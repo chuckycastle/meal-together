@@ -1,0 +1,10 @@
+{
+  "name": "MealTogether",
+  "short_name": "MealTogether",
+  "description": "Collaborative meal planning and cooking coordination",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": []
+}
