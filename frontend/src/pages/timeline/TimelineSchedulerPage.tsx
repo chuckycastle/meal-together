@@ -113,44 +113,52 @@ export const TimelineSchedulerPage = () => {
 
   if (!activeFamily) {
     return (
-      <div className="p-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800">
-            Please select a family to plan timeline
-          </p>
+      <Layout>
+        <div className="p-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800">
+              Please select a family to plan timeline
+            </p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner />
-      </div>
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner />
+        </div>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6">
-        <ErrorMessage message={error.message} />
-      </div>
+      <Layout>
+        <div className="p-6">
+          <ErrorMessage message={error.message} />
+        </div>
+      </Layout>
     );
   }
 
   if (recipes.length === 0) {
     return (
-      <div className="p-6">
-        <EmptyState
-          title="No recipes available"
-          description="Add some recipes before creating a timeline"
-          action={{
-            label: 'Add Recipe',
-            onClick: () => window.location.href = '/recipes/new',
-          }}
-        />
-      </div>
+      <Layout>
+        <div className="p-6">
+          <EmptyState
+            title="No recipes available"
+            description="Add some recipes before creating a timeline"
+            action={{
+              label: 'Add Recipe',
+              onClick: () => window.location.href = '/recipes/new',
+            }}
+          />
+        </div>
+      </Layout>
     );
   }
 
@@ -200,25 +208,25 @@ export const TimelineSchedulerPage = () => {
               <div className="flex gap-2">
                 <button
                   onClick={handleSetTargetTimeNow}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Now
                 </button>
                 <button
                   onClick={() => handleSetTargetTimeLater(1)}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   +1 hour
                 </button>
                 <button
                   onClick={() => handleSetTargetTimeLater(2)}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   +2 hours
                 </button>
                 <button
                   onClick={() => handleSetTargetTimeLater(4)}
-                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   +4 hours
                 </button>
@@ -314,7 +322,7 @@ export const TimelineSchedulerPage = () => {
           {selectedRecipes.length === 0 && (
             <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 text-center">
               <svg
-                className="w-16 h-16 mx-auto mb-4 text-gray-800"
+                className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
