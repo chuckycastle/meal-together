@@ -301,6 +301,15 @@ def parse_ingredient_string(ingredient_text: str) -> tuple[str, str]:
         r'large', r'medium', r'small',
     ]
 
+    # First, handle parenthetical quantities: "1 (10 pound) fully-cooked ham"
+    # Pattern: number + space + parenthetical expression + rest
+    paren_pattern = r'^(\d+\s*\([^)]+\))\s+(.+)$'
+    paren_match = re.match(paren_pattern, ingredient_text)
+    if paren_match:
+        quantity = paren_match.group(1).strip()
+        name = paren_match.group(2).strip()
+        return (quantity, name)
+
     # Pattern: number(s) + optional fraction + optional unit(s) + rest is name
     # Examples: "2 cups", "1 1/2 tablespoons", "3 large", "12 ounces"
     pattern = r'^([\d\s/.-]+(?:' + '|'.join(units) + r')[s]?(?:\s+(?:' + '|'.join(units) + r')[s]?)*)\s+(.+)$'
@@ -309,6 +318,8 @@ def parse_ingredient_string(ingredient_text: str) -> tuple[str, str]:
     if match:
         quantity = match.group(1).strip()
         name = match.group(2).strip()
+        # Convert decimals to fractions (0.333 → 1/3)
+        quantity = convert_decimal_to_fraction(quantity)
         return (quantity, name)
 
     # Fallback: if starts with number but no unit match, split at first letter
@@ -318,10 +329,44 @@ def parse_ingredient_string(ingredient_text: str) -> tuple[str, str]:
         # Could be "12 cranberries" where "12" is quantity
         quantity = number_match.group(1).strip()
         name = number_match.group(2).strip()
+        # Convert decimals to fractions (0.333 → 1/3)
+        quantity = convert_decimal_to_fraction(quantity)
         return (quantity, name)
 
     # No quantity found - entire string is ingredient name
     return ("", ingredient_text)
+
+
+def convert_decimal_to_fraction(quantity_str: str) -> str:
+    """
+    Convert common decimal quantities to fractions.
+    Examples: "0.333 cup" → "1/3 cup", "0.25 teaspoon" → "1/4 teaspoon"
+    """
+    if not quantity_str:
+        return quantity_str
+
+    # Map of (low, high) ranges to fraction strings
+    decimal_map = {
+        (0.32, 0.34): "1/3",
+        (0.66, 0.68): "2/3",
+        (0.24, 0.26): "1/4",
+        (0.74, 0.76): "3/4",
+        (0.49, 0.51): "1/2",
+        (0.12, 0.13): "1/8",
+        (0.37, 0.38): "3/8",
+        (0.62, 0.63): "5/8",
+        (0.87, 0.88): "7/8",
+    }
+
+    # Extract decimal from string (e.g., "0.333 cup")
+    match = re.search(r'(\d*\.\d+)', quantity_str)
+    if match:
+        decimal_val = float(match.group(1))
+        for (low, high), fraction in decimal_map.items():
+            if low <= decimal_val <= high:
+                return quantity_str.replace(match.group(1), fraction)
+
+    return quantity_str
 
 
 def derive_timers_from_steps(steps: list) -> list:

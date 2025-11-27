@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import joinedload, selectinload
 from app import db
 from app.models.recipe import Recipe, Ingredient, CookingStep, RecipeTimer
+from app.models.cooking_session import CookingSession
 from app.utils.decorators import family_member_required
 from app.utils.pagination import get_pagination_params, paginate_query, create_paginated_response
 from app.services.recipe_parser import parse_recipe
@@ -235,12 +236,23 @@ def delete_recipe(family_id, recipe_id):
     if not can_delete:
         return jsonify({'error': 'Permission denied. Only the assigned user or family admins can delete recipes.'}), 403
 
+    # Check for active cooking sessions
+    active_sessions = CookingSession.query.filter_by(
+        recipe_id=recipe_id
+    ).filter(CookingSession.ended_at.is_(None)).count()
+
+    if active_sessions > 0:
+        return jsonify({
+            'error': 'Cannot delete recipe with active cooking sessions. Please end the cooking session first.'
+        }), 400
+
     try:
         recipe.delete()
         return jsonify({'message': 'Recipe deleted successfully'}), 200
     except Exception as e:
+        print(f"[ERROR] Recipe deletion failed for recipe {recipe_id}: {str(e)}")
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Deletion failed: {str(e)}'}), 500
 
 
 @bp.route('/<int:recipe_id>/assign', methods=['POST'])

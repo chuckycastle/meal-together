@@ -88,6 +88,24 @@ def start_cooking_session(family_id):
     try:
         session.save()
 
+        # Copy recipe timers to active timers for this session
+        recipe = Recipe.query.get(data['recipe_id'])
+        if recipe and recipe.timers:
+            for recipe_timer in recipe.timers:
+                active_timer = ActiveTimer(
+                    cooking_session_id=session.id,
+                    name=recipe_timer.name,
+                    duration=recipe_timer.duration,
+                    step_order=recipe_timer.step_order,
+                    started_at=None,
+                    paused_at=None,
+                    elapsed_before_pause=0,
+                    is_active=False
+                )
+                db.session.add(active_timer)
+            db.session.commit()
+            print(f"[DEBUG] Copied {len(recipe.timers)} timers to cooking session {session.id}")
+
         # Broadcast session started (minimal payload - no nested recipe/user objects)
         socketio.emit(
             'cooking_session_started',

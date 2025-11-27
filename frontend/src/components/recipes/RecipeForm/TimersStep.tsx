@@ -93,14 +93,18 @@ export const TimersStep = ({ register, control, errors }: TimersStepProps) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
-                    Duration (seconds) *
+                    Duration (minutes) *
                   </label>
                   <input
-                    {...register(`timers.${index}.duration`, { valueAsNumber: true })}
+                    {...register(`timers.${index}.duration`, {
+                      valueAsNumber: true,
+                      setValueAs: (v) => v * 60 // Convert minutes to seconds for storage
+                    })}
                     type="number"
                     min="1"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                    placeholder="300"
+                    placeholder="5"
+                    defaultValue={field.duration ? Math.round(field.duration / 60) : undefined}
                   />
                   {errors.timers?.[index]?.duration && (
                     <p className="mt-1 text-sm text-red-600">
@@ -162,7 +166,7 @@ export const TimersStep = ({ register, control, errors }: TimersStepProps) => {
           <div className="text-sm text-blue-800 dark:text-blue-200">
             <p className="font-medium mb-1">Timer Tips:</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Enter duration in seconds (e.g., 300 for 5 minutes)</li>
+              <li>Enter duration in minutes (e.g., 5 for 5 minutes)</li>
               <li>Timers will be available during cooking mode</li>
               <li>Link timers to steps for better organization</li>
             </ul>
