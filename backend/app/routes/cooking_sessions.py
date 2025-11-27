@@ -96,10 +96,10 @@ def start_cooking_session(family_id):
                     cooking_session_id=session.id,
                     name=recipe_timer.name,
                     duration=recipe_timer.duration,
-                    step_order=recipe_timer.step_order,
-                    started_at=None,
+                    started_at=datetime.utcnow(),
                     paused_at=None,
-                    elapsed_before_pause=0,
+                    remaining_time=recipe_timer.duration,
+                    completed_at=None,
                     is_active=False
                 )
                 db.session.add(active_timer)
