@@ -38,7 +38,14 @@ def truncate_text(text: str, max_length: int) -> str:
 def parse_duration_to_seconds(text: str) -> int | None:
     """
     Parse duration from text to seconds.
-    Examples: "20 minutes" → 1200, "1 hour" → 3600, "30 secs" → 30
+    Handles ranges by taking the midpoint.
+
+    Examples:
+        "20 minutes" → 1200
+        "1 hour" → 3600
+        "8 to 10 minutes" → 540 (9 minutes midpoint)
+        "30-45 minutes" → 2250 (37.5 minutes → 38 minutes)
+        "about 20 minutes" → 1200
 
     Args:
         text: Text potentially containing duration
@@ -51,7 +58,23 @@ def parse_duration_to_seconds(text: str) -> int | None:
 
     text_lower = text.lower()
 
-    # Patterns: (regex, multiplier in seconds)
+    # First, try to detect ranges: "8 to 10 minutes", "30-45 min", etc.
+    range_patterns = [
+        # "8 to 10 minutes", "1 to 2 hours"
+        (r'(\d+(?:\.\d+)?)\s*(?:to|-)\s*(\d+(?:\.\d+)?)\s*(hour|hr|hours|hrs)', 3600),
+        (r'(\d+(?:\.\d+)?)\s*(?:to|-)\s*(\d+(?:\.\d+)?)\s*(minute|min|minutes|mins)', 60),
+        (r'(\d+(?:\.\d+)?)\s*(?:to|-)\s*(\d+(?:\.\d+)?)\s*(second|sec|seconds|secs)', 1),
+    ]
+
+    for pattern, multiplier in range_patterns:
+        match = re.search(pattern, text_lower)
+        if match:
+            low = float(match.group(1))
+            high = float(match.group(2))
+            midpoint = (low + high) / 2
+            return int(midpoint * multiplier)
+
+    # Single value patterns
     patterns = [
         (r'(\d+(?:\.\d+)?)\s*(?:hour|hr|hours|hrs)', 3600),
         (r'(\d+(?:\.\d+)?)\s*(?:minute|min|minutes|mins)', 60),
@@ -222,6 +245,83 @@ def extract_image_url(json_ld: dict) -> str:
             return first_image
 
     return ''
+
+
+def parse_ingredient_string(ingredient_text: str) -> tuple[str, str]:
+    """
+    Parse ingredient string to extract quantity and name.
+
+    Examples:
+        "12 ounces cranberries" → ("12 ounces", "cranberries")
+        "1 cup white sugar" → ("1 cup", "white sugar")
+        "2 tablespoons butter" → ("2 tablespoons", "butter")
+        "1/2 teaspoon salt" → ("1/2 teaspoon", "salt")
+        "cranberries" → ("", "cranberries")
+
+    Args:
+        ingredient_text: Full ingredient string
+
+    Returns:
+        Tuple of (quantity, name)
+    """
+    if not ingredient_text:
+        return ("", "")
+
+    ingredient_text = ingredient_text.strip()
+
+    # Common units to detect
+    units = [
+        # Volume
+        r'cup', r'cups', r'c\b',
+        r'tablespoon', r'tablespoons', r'tbsp', r'tbs', r'T\b',
+        r'teaspoon', r'teaspoons', r'tsp', r't\b',
+        r'fluid ounce', r'fluid ounces', r'fl oz',
+        r'pint', r'pints', r'pt',
+        r'quart', r'quarts', r'qt',
+        r'gallon', r'gallons', r'gal',
+        r'milliliter', r'milliliters', r'ml',
+        r'liter', r'liters', r'l\b',
+        # Weight
+        r'pound', r'pounds', r'lb', r'lbs',
+        r'ounce', r'ounces', r'oz',
+        r'gram', r'grams', r'g\b',
+        r'kilogram', r'kilograms', r'kg',
+        # Other
+        r'can', r'cans',
+        r'package', r'packages', r'pkg',
+        r'jar', r'jars',
+        r'box', r'boxes',
+        r'bag', r'bags',
+        r'bunch', r'bunches',
+        r'clove', r'cloves',
+        r'slice', r'slices',
+        r'pinch', r'pinches',
+        r'dash', r'dashes',
+        r'whole',
+        r'large', r'medium', r'small',
+    ]
+
+    # Pattern: number(s) + optional fraction + optional unit(s) + rest is name
+    # Examples: "2 cups", "1 1/2 tablespoons", "3 large", "12 ounces"
+    pattern = r'^([\d\s/.-]+(?:' + '|'.join(units) + r')[s]?(?:\s+(?:' + '|'.join(units) + r')[s]?)*)\s+(.+)$'
+
+    match = re.match(pattern, ingredient_text, re.IGNORECASE)
+    if match:
+        quantity = match.group(1).strip()
+        name = match.group(2).strip()
+        return (quantity, name)
+
+    # Fallback: if starts with number but no unit match, split at first letter
+    number_pattern = r'^([\d\s/.-]+)\s+([a-zA-Z].+)$'
+    number_match = re.match(number_pattern, ingredient_text)
+    if number_match:
+        # Could be "12 cranberries" where "12" is quantity
+        quantity = number_match.group(1).strip()
+        name = number_match.group(2).strip()
+        return (quantity, name)
+
+    # No quantity found - entire string is ingredient name
+    return ("", ingredient_text)
 
 
 def derive_timers_from_steps(steps: list) -> list:
@@ -527,19 +627,20 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
             "image_url": truncate_text(image_url, 500),
             "ingredients": [
                 {
-                    "name": truncate_text(str(ing), MAX_INGREDIENT_CHARS),
-                    "quantity": ""
+                    "quantity": truncate_text(qty, MAX_INGREDIENT_CHARS),
+                    "name": truncate_text(name, MAX_INGREDIENT_CHARS)
                 }
                 for ing in json_ld.get('recipeIngredient', [])[:MAX_INGREDIENTS]
+                for qty, name in [parse_ingredient_string(str(ing))]
             ],
             "steps": [
                 {
                     "order": i + 1,
                     "instruction": truncate_text(
-                        step.get('text', step) if isinstance(step, dict) else str(step),
+                        step_text := (step.get('text', step) if isinstance(step, dict) else str(step)),
                         MAX_STEP_CHARS
                     ),
-                    "estimated_time": None
+                    "estimated_time": (parse_duration_to_seconds(step_text) // 60) if parse_duration_to_seconds(step_text) else None
                 }
                 for i, step in enumerate(json_ld.get('recipeInstructions', [])[:MAX_STEPS])
             ]
@@ -552,7 +653,9 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
     # Enforce input limits before LLM call
     raw_data = enforce_input_limits(raw_data)
 
-    # Store pre-parsed step durations before LLM
+    # Store pre-parsed times and step durations before LLM
+    original_prep_time = raw_data.get('prep_time', 0)
+    original_cook_time = raw_data.get('cook_time', 0)
     original_step_durations = {}
     for i, step in enumerate(raw_data.get('steps', [])):
         if step.get('estimated_time'):
@@ -561,10 +664,16 @@ def parse_recipe(url: str, family_id: str, user_id: str) -> tuple[ImportedRecipe
     # Try LLM normalization (Claude → GPT)
     llm_result = normalize_recipe_with_llm(raw_data)
     if llm_result:
-        # Preserve pre-parsed durations if LLM didn't provide them
+        # Preserve pre-parsed durations if LLM didn't provide them or returned 0
         for i, step in enumerate(llm_result.get('steps', [])):
             if i in original_step_durations and not step.get('estimated_time'):
                 step['estimated_time'] = original_step_durations[i]
+
+        # Preserve non-zero prep/cook times if LLM returns 0
+        if original_prep_time > 0 and llm_result.get('prep_time', 0) == 0:
+            llm_result['prep_time'] = original_prep_time
+        if original_cook_time > 0 and llm_result.get('cook_time', 0) == 0:
+            llm_result['cook_time'] = original_cook_time
 
         raw_data = llm_result
         extraction_method = "ai"

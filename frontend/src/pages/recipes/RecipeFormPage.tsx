@@ -125,7 +125,16 @@ export const RecipeFormPage = () => {
     }
 
     const isValid = await trigger(fieldsToValidate);
-    if (!isValid) return;
+    if (!isValid) {
+      // Scroll to first error
+      setTimeout(() => {
+        const firstError = document.querySelector('.text-red-600, .border-red-500, [aria-invalid="true"]');
+        if (firstError) {
+          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      return;
+    }
 
     if (currentStepIndex < STEPS.length - 1) {
       setCurrentStep(STEPS[currentStepIndex + 1].id);

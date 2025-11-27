@@ -38,17 +38,18 @@ LLM_PROMPT = """You are a recipe normalizer. Return ONLY valid JSON matching thi
 
 Rules:
 - Keep steps concise and imperative (e.g., "Preheat oven to 350°F")
-- Extract prep_time and cook_time in minutes from source data. If missing, estimate based on recipe complexity.
+- PRESERVE non-zero prep_time and cook_time from input - do not change to 0
+- If input has prep_time or cook_time > 0, keep those exact values
 - Extract estimated_time from step text in MINUTES (e.g., "bake 20 minutes" → estimated_time: 20)
+- For time ranges, use MIDPOINT (e.g., "8 to 10 minutes" → estimated_time: 9, "30-45 minutes" → estimated_time: 38)
 - If step mentions "1 hour", convert to 60 minutes
-- If multiple times in one step, pick the longest
-- Set null if no duration mentioned
+- If step already has estimated_time > 0 in input, preserve it unless you find a better value
+- Set null only if no duration mentioned and none in input
+- For ingredients: if quantity and name are already split in input, keep them split - do not merge
 - For image_url: Leave as empty string if no image URL found in source. NEVER invent or generate placeholder image URLs.
 - Preserve source URLs exactly as provided - do not modify them
 - Don't invent data - use null or empty string if uncertain
 - Preserve chronological order
-- Normalize units (cups → c, tablespoon → tbsp, etc.)
-- Combine duplicate ingredients
 - Remove marketing language ("delicious", "perfect", etc.)
 
 Return ONLY the JSON object. No markdown, no explanation.

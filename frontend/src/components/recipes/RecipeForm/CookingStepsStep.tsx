@@ -70,7 +70,14 @@ export const CookingStepsStep = ({ register, control, errors }: CookingStepsStep
 
       <div className="space-y-3">
         {fields.map((field, index) => (
-          <div key={field.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div
+            key={field.id}
+            className={`bg-white dark:bg-gray-800 border rounded-lg p-4 ${
+              errors.steps?.[index]
+                ? 'border-red-500 dark:border-red-600'
+                : 'border-gray-200 dark:border-gray-700'
+            }`}
+          >
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-2">
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-semibold text-sm">
