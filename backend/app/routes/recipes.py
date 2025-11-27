@@ -238,8 +238,9 @@ def delete_recipe(family_id, recipe_id):
 
     # Check for active cooking sessions
     active_sessions = CookingSession.query.filter_by(
-        recipe_id=recipe_id
-    ).filter(CookingSession.ended_at.is_(None)).count()
+        recipe_id=recipe_id,
+        is_active=True
+    ).count()
 
     if active_sessions > 0:
         return jsonify({
