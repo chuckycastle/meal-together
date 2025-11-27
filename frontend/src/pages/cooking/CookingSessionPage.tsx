@@ -145,11 +145,11 @@ export const CookingSessionPage = () => {
     return (
       <Layout>
         <div className="p-6 max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Start Cooking {recipe?.name}?
             </h2>
-            <p className="text-gray-800 mb-6">
+            <p className="text-gray-800 dark:text-gray-300 mb-6">
               This will create a new cooking session with timers for this recipe
             </p>
             <div className="flex items-center gap-4 justify-center">
@@ -169,7 +169,7 @@ export const CookingSessionPage = () => {
               </button>
               <button
                 onClick={() => navigate('/recipes')}
-                className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+                className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-6 py-3 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>
@@ -224,10 +224,10 @@ export const CookingSessionPage = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
               {session.recipe?.name}
             </h1>
-            <p className="text-gray-800">Cooking Session</p>
+            <p className="text-gray-800 dark:text-gray-300">Cooking Session</p>
           </div>
 
           {/* Complete Button */}
@@ -243,16 +243,16 @@ export const CookingSessionPage = () => {
 
         {/* Progress */}
         {totalTimers > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-800">
+              <span className="text-sm font-medium text-gray-800 dark:text-gray-300">
                 Timer Progress
               </span>
-              <span className="text-sm text-gray-800">
+              <span className="text-sm text-gray-800 dark:text-gray-300">
                 {completedTimers} of {totalTimers} completed
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 className="bg-green-600 h-2 rounded-full transition-all"
                 style={{ width: `${(completedTimers / totalTimers) * 100}%` }}
@@ -286,8 +286,8 @@ export const CookingSessionPage = () => {
 
       {/* Cooking Steps */}
       {session.recipe?.steps && session.recipe.steps.length > 0 && (
-        <div className="mt-8 bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
+        <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
             Cooking Steps
           </h2>
           <ol className="space-y-3">
@@ -298,7 +298,7 @@ export const CookingSessionPage = () => {
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
                     {step.order}
                   </span>
-                  <p className="flex-1 text-gray-800 pt-1">{step.instruction}</p>
+                  <p className="flex-1 text-gray-800 dark:text-gray-300 pt-1">{step.instruction}</p>
                 </li>
               ))}
           </ol>

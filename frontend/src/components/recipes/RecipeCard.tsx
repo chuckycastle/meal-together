@@ -58,7 +58,7 @@ export const RecipeCard = memo(({ recipe }: RecipeCardProps) => {
 
         {/* Assigned To */}
         {recipe.assigned_to && (
-          <div className="mt-2 text-sm text-gray-800">
+          <div className="mt-2 text-sm text-gray-800 dark:text-gray-300">
             Assigned to: {recipe.assigned_to.full_name}
           </div>
         )}
