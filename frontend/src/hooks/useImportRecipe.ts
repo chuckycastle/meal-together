@@ -28,8 +28,8 @@ export function useImportRecipe(options?: UseImportRecipeOptions) {
         throw new Error('No family selected');
       }
 
-      // Use API client - auth handled by interceptor
-      const response = await apiClient.post<ImportResponse>(
+      // Use API client's axios instance - auth handled by interceptor
+      const response = await (apiClient as any).client.post<ImportResponse>(
         `/api/families/${activeFamily.id}/recipes/import`,
         request,
         {
