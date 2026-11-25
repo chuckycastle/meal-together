@@ -6,8 +6,11 @@ Collaborative meal planning and cooking coordination for families and groups.
 
 - **Recipe Management**: Ingredients, cooking steps, and predefined timers
 - **Collaborative Shopping Lists**: Real-time item tracking with optimistic locking
-- **Timeline Scheduler**: Calculate optimal start times for multiple recipes
-- **Multi-Timer Coordination**: Real-time timer sync across all family members
+- **Meal Plans**: A meal with a serve time and a schedule sheet of dishes, each with a start time, a cook, and a done state
+- **Kitchen Dashboard**: Countdown to the meal, countdown to each dish's start, and the family timer board
+- **Timer Board**: Shared countdowns and stopwatches with add-time, pause, reset, and overtime after zero
+- **Cook Mode**: One recipe step per screen with preset timers and screen wake lock
+- **Shopping From a Meal**: Add every ingredient on a meal's menu to the shopping list, merged by name and grouped by store section
 - **Family Groups**: Role-based access control (Owner, Admin, Member)
 - **Real-Time Updates**: WebSocket-based live collaboration
 - **Performance Optimized**: Redis caching, lazy loading, code splitting
@@ -207,7 +210,71 @@ Authorization: Bearer <token>
 }
 ```
 
-### Timers
+### Meals
+
+```http
+GET    /api/families/{family_id}/meals
+POST   /api/families/{family_id}/meals
+PUT    /api/families/{family_id}/meals/{meal_id}
+DELETE /api/families/{family_id}/meals/{meal_id}
+POST   /api/families/{family_id}/meals/{meal_id}/items
+PUT    /api/families/{family_id}/meals/{meal_id}/items/{item_id}
+DELETE /api/families/{family_id}/meals/{meal_id}/items/{item_id}
+POST   /api/families/{family_id}/meals/{meal_id}/shopping-list
+```
+
+Create a meal:
+```http
+POST /api/families/{family_id}/meals
+Authorization: Bearer <token>
+
+{
+  "name": "Thanksgiving 2026",
+  "serve_at": "2026-11-27T02:00:00Z"
+}
+```
+
+Add a dish. Without `start_at`, the start time is the serve time minus the recipe's prep and cook time:
+```http
+POST /api/families/{family_id}/meals/{meal_id}/items
+Authorization: Bearer <token>
+
+{
+  "kind": "dish",
+  "recipe_id": 5,
+  "title": "Turkey",
+  "color": "brown"
+}
+```
+
+### Timer Board
+
+```http
+GET    /api/families/{family_id}/timers
+POST   /api/families/{family_id}/timers
+POST   /api/families/{family_id}/timers/{timer_id}/start
+POST   /api/families/{family_id}/timers/{timer_id}/pause
+POST   /api/families/{family_id}/timers/{timer_id}/reset
+POST   /api/families/{family_id}/timers/{timer_id}/add
+DELETE /api/families/{family_id}/timers/{timer_id}
+```
+
+Start a countdown:
+```http
+POST /api/families/{family_id}/timers
+Authorization: Bearer <token>
+
+{
+  "name": "Rolls in the oven",
+  "kind": "countdown",
+  "duration": 720,
+  "color": "tan"
+}
+```
+
+Timer state is stored as timestamps. Every response includes `server_time` so clients can correct for clock drift. A running countdown whose `anchor_at` has passed is finished.
+
+### Cooking Session Timers
 
 Start timer:
 ```http
@@ -219,6 +286,16 @@ Authorization: Bearer <token>
   "duration": 1800
 }
 ```
+
+### Family Recipe Seed
+
+Load the family holiday recipes and the Thanksgiving 2026 schedule into an existing family:
+```bash
+cd backend
+python seed_family_recipes.py --email you@example.com --timezone America/Los_Angeles
+```
+
+The script adds only missing recipes and skips the meal if one with the same name exists.
 
 ## WebSocket Events
 

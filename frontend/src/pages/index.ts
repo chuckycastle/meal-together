@@ -4,10 +4,10 @@
 
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';
-export { DashboardPage } from './DashboardPage';
+export { KitchenPage } from './kitchen/KitchenPage';
+export { PlanPage } from './plan/PlanPage';
 export { RecipeListPage, RecipeDetailPage, RecipeFormPage } from './recipes';
 export { ShoppingListPage } from './shopping';
-export { TimelineSchedulerPage } from './timeline';
-export { CookingSessionPage } from './cooking';
+export { CookPage } from './cooking';
 export { FamilyManagementPage } from './families';
 export { ProfilePage } from './ProfilePage';

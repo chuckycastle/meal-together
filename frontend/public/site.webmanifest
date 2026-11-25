@@ -4,7 +4,7 @@
   "description": "Collaborative meal planning and cooking coordination",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#edf0f2",
+  "theme_color": "#edf0f2",
   "icons": []
 }

@@ -60,12 +60,14 @@ def create_app(config_name=None):
     })
 
     # Register blueprints
-    from app.routes import auth, families, recipes, shopping_lists, cooking_sessions, health
+    from app.routes import auth, families, recipes, shopping_lists, cooking_sessions, meals, timers, health
     app.register_blueprint(auth.bp)
     app.register_blueprint(families.bp)
     app.register_blueprint(recipes.bp)
     app.register_blueprint(shopping_lists.bp)
     app.register_blueprint(cooking_sessions.bp)
+    app.register_blueprint(meals.bp)
+    app.register_blueprint(timers.bp)
     app.register_blueprint(health.bp)
 
     # Register WebSocket events

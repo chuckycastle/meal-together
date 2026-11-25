@@ -7,6 +7,8 @@ from app.models.family import Family, FamilyMember, FamilyRole
 from app.models.recipe import Recipe, Ingredient, CookingStep, RecipeTimer
 from app.models.shopping_list import ShoppingList, ShoppingListItem
 from app.models.cooking_session import CookingSession, ActiveTimer
+from app.models.meal import Meal, MealItem
+from app.models.kitchen_timer import KitchenTimer
 
 __all__ = [
     'BaseModel',
@@ -22,4 +24,7 @@ __all__ = [
     'ShoppingListItem',
     'CookingSession',
     'ActiveTimer',
+    'Meal',
+    'MealItem',
+    'KitchenTimer',
 ]

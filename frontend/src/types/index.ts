@@ -292,6 +292,119 @@ export interface StartTimerRequest {
 }
 
 // ============================================================================
+// Meals
+// ============================================================================
+
+export type MealItemKind = 'dish' | 'event';
+
+export type MarkerColor = 'red' | 'orange' | 'brown' | 'green' | 'tan' | 'ink';
+
+export interface MealItemRecipe {
+  id: number;
+  name: string;
+  prep_time: number;
+  cook_time: number;
+  total_time: number;
+  servings: number;
+  timers: Array<Pick<RecipeTimer, 'id' | 'name' | 'duration' | 'step_order'>>;
+}
+
+export interface MealItem {
+  id: number;
+  meal_id: number;
+  kind: MealItemKind;
+  title: string;
+  recipe_id: number | null;
+  recipe: MealItemRecipe | null;
+  start_at: string | null; // ISO 8601, UTC
+  color: MarkerColor;
+  assigned_to_id: number | null;
+  assigned_to: User | null;
+  done: boolean;
+  done_at: string | null;
+  done_by_id: number | null;
+}
+
+export interface Meal {
+  id: number;
+  family_id: number;
+  name: string;
+  serve_at: string; // ISO 8601, UTC
+  notes: string | null;
+  items: MealItem[];
+}
+
+export interface MealItemInput {
+  kind?: MealItemKind;
+  title?: string;
+  recipe_id?: number | null;
+  start_at?: string | null;
+  color?: MarkerColor;
+  assigned_to_id?: number | null;
+  done?: boolean;
+}
+
+export interface CreateMealRequest {
+  name: string;
+  serve_at: string;
+  notes?: string;
+  items?: MealItemInput[];
+}
+
+export interface UpdateMealRequest {
+  name?: string;
+  serve_at?: string;
+  notes?: string | null;
+}
+
+export interface MealShoppingResult {
+  shopping_list_id: number;
+  added: number;
+  skipped: number;
+}
+
+// ============================================================================
+// Timer board
+// ============================================================================
+
+export type BoardTimerKind = 'countdown' | 'stopwatch';
+
+export interface BoardTimer {
+  id: number;
+  family_id: number;
+  name: string;
+  kind: BoardTimerKind;
+  duration: number; // seconds; 0 for a stopwatch
+  color: MarkerColor;
+  recipe_id: number | null;
+  recipe_name: string | null;
+  status: 'idle' | 'running' | 'paused';
+  /** Running countdown: when it reaches zero. Running stopwatch: when it started. ISO 8601, UTC. */
+  anchor_at: string | null;
+  /** Idle or paused: seconds left (countdown) or elapsed (stopwatch) */
+  held_seconds: number;
+}
+
+export interface CreateBoardTimerRequest {
+  name: string;
+  kind?: BoardTimerKind;
+  duration?: number;
+  color?: MarkerColor;
+  recipe_id?: number | null;
+  start?: boolean;
+}
+
+export interface BoardTimerResponse {
+  timer: BoardTimer;
+  server_time: string;
+}
+
+export interface BoardTimerListResponse {
+  timers: BoardTimer[];
+  server_time: string;
+}
+
+// ============================================================================
 // Kitchen Timers (Supabase Realtime)
 // ============================================================================
 
