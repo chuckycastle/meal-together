@@ -13,7 +13,7 @@ import { MealSheet } from '../../components/plan/MealSheet';
 import { MealDialog } from '../../components/plan/MealDialog';
 import { ItemDialog } from '../../components/plan/ItemDialog';
 import { AddDishesDialog } from '../../components/plan/AddDishesDialog';
-import { FirstFamily } from '../../components/plan/FirstFamily';
+import { Welcome } from '../../components/family/Welcome';
 import { useFamily } from '../../contexts/FamilyContext';
 import {
   useAddMealItem,
@@ -25,6 +25,7 @@ import {
   useUpdateMeal,
   useUpdateMealItem,
 } from '../../hooks/useMeals';
+import { useMe } from '../../hooks/useMe';
 import { useNow } from '../../hooks/useNow';
 import { useRecipes } from '../../hooks/useRecipes';
 import { useShoppingLists } from '../../hooks/useShoppingLists';
@@ -48,6 +49,8 @@ const MealView = ({ meal, meals, family }: { meal: Meal; meals: Meal[]; family: 
   const deleteItem = useDeleteMealItem(family.id, meal.id);
   const addToShopping = useAddMealToShoppingList(family.id, meal.id);
 
+  const { userId } = useMe();
+  const [mineOnly, setMineOnly] = useState(false);
   const [mealDialog, setMealDialog] = useState<'new' | 'edit' | null>(null);
   const [itemEditor, setItemEditor] = useState<ItemEditor>(null);
   const [addingDishes, setAddingDishes] = useState(false);
@@ -61,15 +64,17 @@ const MealView = ({ meal, meals, family }: { meal: Meal; meals: Meal[]; family: 
   const shoppingList = shoppingLists[0];
   const hasRecipes = dishes.some((item) => item.recipe);
 
-  const byCook = new Map<number, { user: NonNullable<MealItem['assigned_to']>; titles: string[] }>();
+  const byCook = new Map<number, { user: NonNullable<MealItem['cook']>; titles: string[] }>();
   for (const item of dishes) {
-    if (!item.assigned_to) continue;
-    const entry = byCook.get(item.assigned_to.id) ?? { user: item.assigned_to, titles: [] };
+    if (!item.cook) continue;
+    const entry = byCook.get(item.cook.id) ?? { user: item.cook, titles: [] };
     entry.titles.push(item.title);
-    byCook.set(item.assigned_to.id, entry);
+    byCook.set(item.cook.id, entry);
   }
-  const cooks = [...byCook.values()];
-  const unassigned = dishes.filter((item) => !item.assigned_to && !item.done).length;
+  // The signed-in person first
+  const cooks = [...byCook.values()].sort((a, b) => Number(b.user.id === userId) - Number(a.user.id === userId));
+  const unassigned = dishes.filter((item) => !item.cook && !item.done).length;
+  const mine = dishes.filter((item) => item.cook?.id === userId);
 
   return (
     <>
@@ -124,6 +129,29 @@ const MealView = ({ meal, meals, family }: { meal: Meal; meals: Meal[]; family: 
             )}
           </div>
 
+          {dishes.length > 0 && (
+            <div className="mb-3 inline-flex rounded-full border-[1.5px] border-line bg-paper p-0.5" role="group" aria-label="Whose dishes to show">
+              {(
+                [
+                  [false, `Everyone's dishes`],
+                  [true, `Yours (${mine.length})`],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  aria-pressed={mineOnly === value}
+                  onClick={() => setMineOnly(value)}
+                  className={`rounded-full px-3 py-1 text-sm font-semibold ${
+                    mineOnly === value ? 'bg-ink text-paper' : 'text-ink-2 hover:text-ink'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {dishes.length === 0 ? (
             <BlankSlate
               title="Nothing on the menu yet"
@@ -141,6 +169,8 @@ const MealView = ({ meal, meals, family }: { meal: Meal; meals: Meal[]; family: 
               <MealSheet
                 meal={meal}
                 now={now}
+                meId={userId}
+                mineOnly={mineOnly}
                 onToggle={(item, done) => updateItem.mutate({ itemId: item.id, data: { done } })}
                 onEdit={(item) => setItemEditor({ item, kind: item.kind })}
               />
@@ -230,14 +260,16 @@ const MealView = ({ meal, meals, family }: { meal: Meal; meals: Meal[]; family: 
               Who is cooking
             </h2>
             {cooks.length === 0 ? (
-              <p className="mt-2 text-ink-2">Nobody has a dish yet. Edit a dish to hand it to someone.</p>
+              <p className="mt-2 text-ink-2">
+                Nobody has a dish yet. Assign a recipe to someone, or tap "Needs a cook" on a dish.
+              </p>
             ) : (
               <ul className="mt-2 space-y-3">
                 {cooks.map(({ user, titles }) => (
                   <li key={user.id} className="flex items-start gap-3">
-                    <Avatar user={user} size="sm" className="mt-0.5" />
+                    <Avatar user={user} size="sm" className="mt-0.5" filled={user.id === userId} />
                     <p className="leading-snug">
-                      <span className="font-semibold">{user.first_name}</span>
+                      <span className="font-semibold">{user.id === userId ? 'You' : user.first_name}</span>
                       <span className="block text-sm text-ink-2">{titles.join(', ')}</span>
                     </p>
                   </li>
@@ -345,7 +377,7 @@ export const PlanPage = () => {
   } else if (familiesError) {
     content = <Notice>Your family did not load. Check your connection and reload the page.</Notice>;
   } else if (families.length === 0) {
-    content = <FirstFamily />;
+    content = <Welcome />;
   } else if (!activeFamily || mealsLoading) {
     content = <Spinner />;
   } else if (isError) {

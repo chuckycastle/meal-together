@@ -12,7 +12,7 @@ import { StepTimer } from '../../components/cook/StepTimer';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useKitchenTimers } from '../../hooks/useKitchenTimers';
-import { useDeleteRecipe, useRecipe } from '../../hooks/useRecipes';
+import { useAssignRecipe, useDeleteRecipe, useRecipe } from '../../hooks/useRecipes';
 import { looseTimers, safeHttpUrl, sortedSteps, sourceLabel, timersForStep } from '../../lib/recipes';
 import { durationLabel } from '../../lib/time';
 
@@ -24,6 +24,7 @@ export const RecipeDetailPage = () => {
   const { activeFamily } = useFamily();
   const { data: recipe, isLoading, isError } = useRecipe(activeFamily?.id, recipeId);
   const deleteRecipe = useDeleteRecipe(activeFamily?.id ?? 0);
+  const assignRecipe = useAssignRecipe(activeFamily?.id ?? 0, recipeId ?? 0);
   const kitchen = useKitchenTimers(activeFamily?.id);
   const [deleteError, setDeleteError] = useState('');
 
@@ -96,6 +97,36 @@ export const RecipeDetailPage = () => {
               </a>
             </>
           )}
+        </p>
+
+        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <label className="font-semibold" htmlFor="recipe-cook">
+            Who cooks this?
+          </label>
+          <select
+            id="recipe-cook"
+            className="field w-auto min-w-44"
+            value={recipe.assigned_to_id ?? ''}
+            disabled={assignRecipe.isPending}
+            onChange={(event) => assignRecipe.mutate(event.target.value ? Number(event.target.value) : null)}
+          >
+            <option value="">Nobody yet</option>
+            {(activeFamily.members ?? []).map((member) => (
+              <option key={member.user_id} value={member.user_id}>
+                {member.user_id === user?.id
+                  ? `You (${member.user?.first_name})`
+                  : `${member.user?.first_name} ${member.user?.last_name}`}
+              </option>
+            ))}
+          </select>
+          {assignRecipe.isError && (
+            <span className="text-sm text-hot" role="alert">
+              The cook was not saved. Try again.
+            </span>
+          )}
+        </div>
+        <p className="mt-1 text-sm text-ink-2">
+          Meals that include this recipe show this person as the cook, unless a dish is given to someone else.
         </p>
 
         <div className="mt-5 flex flex-wrap items-center gap-2">

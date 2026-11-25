@@ -8,15 +8,18 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChefHat, Plus } from 'lucide-react';
 import { Layout } from '../../components/layout';
-import { BlankSlate, Clock, Notice, Spinner } from '../../components/kit';
+import { Avatar, BlankSlate, Clock, Notice, Spinner } from '../../components/kit';
 import { StepTimer } from '../../components/cook/StepTimer';
-import { FirstFamily } from '../../components/plan/FirstFamily';
+import { JoinRequests } from '../../components/family/JoinRequests';
+import { Welcome } from '../../components/family/Welcome';
 import { NewTimerDialog } from '../../components/timers/NewTimerDialog';
 import { TimerTile } from '../../components/timers/TimerTile';
 import { useFamily } from '../../contexts/FamilyContext';
 import { byUrgency, useKitchenTimers } from '../../hooks/useKitchenTimers';
 import type { KitchenTimers } from '../../hooks/useKitchenTimers';
-import { useMeals } from '../../hooks/useMeals';
+import { useJoinRequests } from '../../hooks/useJoin';
+import { useMe } from '../../hooks/useMe';
+import { useMeals, useUpdateMealItem } from '../../hooks/useMeals';
 import { useNow } from '../../hooks/useNow';
 import { pickCurrentMeal } from '../../lib/meals';
 import { clockLabel, countdownLabel, dayDistanceLabel, durationLabel, isSameDay, longDateLabel } from '../../lib/time';
@@ -34,7 +37,7 @@ const Segment = ({ value, unit }: { value: number | string; unit: string }) => (
   </span>
 );
 
-const MealCountdown = ({ meal }: { meal: Meal }) => {
+const MealCountdown = ({ meal, meId }: { meal: Meal; meId: number }) => {
   const serveAt = new Date(meal.serve_at);
   const coarse = useNow(30000);
   const closeIn = serveAt.getTime() - coarse.getTime() < DAY * 1000;
@@ -44,6 +47,20 @@ const MealCountdown = ({ meal }: { meal: Meal }) => {
 
   const dishes = meal.items.filter((item) => item.kind === 'dish');
   const done = dishes.filter((item) => item.done).length;
+
+  const yours = dishes.filter((item) => item.cook?.id === meId);
+  const yoursLeft = yours.filter((item) => !item.done);
+  const first = [...yoursLeft].filter((item) => item.start_at).sort((a, b) => a.start_at!.localeCompare(b.start_at!))[0];
+  let yourLine = '';
+  if (dishes.length > 0 && yours.length === 0) {
+    yourLine = 'None are assigned to you.';
+  } else if (yours.length > 0 && yoursLeft.length === 0) {
+    yourLine = `All ${yours.length} of yours are done.`;
+  } else if (first?.start_at) {
+    yourLine = `You have ${yoursLeft.length} to cook, starting with ${first.title} at ${clockLabel(new Date(first.start_at))}.`;
+  } else if (yoursLeft.length > 0) {
+    yourLine = `You have ${yoursLeft.length} to cook.`;
+  }
 
   let body;
   if (left <= 0) {
@@ -83,7 +100,8 @@ const MealCountdown = ({ meal }: { meal: Meal }) => {
         <p className="text-ink-2">
           {dishes.length === 0
             ? 'No dishes on the menu yet.'
-            : `${done} of ${dishes.length} dishes done.`}
+            : `${done} of ${dishes.length} dishes done.`}{' '}
+          {yourLine}
         </p>
         <Link to={`/plan?meal=${meal.id}`} className="btn btn-outline btn-sm">
           Open the full schedule
@@ -116,85 +134,88 @@ const StartsIn = ({ start }: { start: Date }) => {
   return <span className="text-sm font-semibold text-ink-2">{dayDistanceLabel(start, now)}</span>;
 };
 
-const UpNext = ({ meal, board }: { meal: Meal; board: KitchenTimers }) => {
+interface DishListProps {
+  meal: Meal;
+  items: MealItem[];
+  board: KitchenTimers;
+  meId: number;
+  /** Show who cooks each dish */
+  showCook?: boolean;
+  /** Which dishes list their preset timers */
+  presets: 'all' | 'dueAndNext' | 'none';
+  onClaim?: (item: MealItem) => void;
+}
+
+/** Dishes and events in start order, each with a countdown to its start */
+const DishList = ({ meal, items, board, meId, showCook = false, presets, onClaim }: DishListProps) => {
   const now = useNow(30000);
-
-  const upcoming = useMemo(() => {
-    const scheduled = meal.items.filter((item): item is MealItem & { start_at: string } => !!item.start_at);
-    return scheduled
-      .filter((item) => (item.kind === 'dish' ? !item.done : new Date(item.start_at) > now))
-      .sort((a, b) => a.start_at.localeCompare(b.start_at));
-  }, [meal.items, now]);
-
-  if (upcoming.length === 0) {
-    const anyDishes = meal.items.some((item) => item.kind === 'dish');
-    return (
-      <p className="mt-2 text-ink-2">
-        {anyDishes ? 'Every dish is checked off.' : 'Add dishes to the plan and their start times count down here.'}
-      </p>
-    );
-  }
-
-  const shown = upcoming.slice(0, 6);
-  const firstDishId = shown.find((item) => item.kind === 'dish')?.id;
+  const firstDishId = items.find((item) => item.kind === 'dish')?.id;
 
   return (
-    <>
-      <ol className="mt-2 divide-y divide-line">
-        {shown.map((item) => {
-          const start = new Date(item.start_at);
-          const due = start <= now;
-          const showPresets = item.recipe && item.recipe.timers.length > 0 && (due || item.id === firstDishId);
+    <ol className="mt-2 divide-y divide-line">
+      {items.map((item) => {
+        const start = item.start_at ? new Date(item.start_at) : null;
+        const due = !!start && start <= now && item.kind === 'dish';
+        const hasPresets = !!item.recipe && item.recipe.timers.length > 0;
+        const showPresets =
+          hasPresets && (presets === 'all' || (presets === 'dueAndNext' && (due || item.id === firstDishId)));
 
-          return (
-            <li key={item.id} className={`mk-${item.color} py-3`}>
-              <div className="flex items-center gap-3">
+        return (
+          <li key={item.id} className={`mk-${item.color} py-3`}>
+            <div className="flex items-center gap-3">
+              {start ? (
                 <Clock date={start} className="w-[4.6ch] flex-none text-2xl" />
-                <div className="min-w-0 flex-1">
-                  <p className="marker text-xl leading-tight" style={{ color: 'var(--mk)' }}>
-                    {item.title}
-                  </p>
-                  <StartsIn start={start} />
-                </div>
-                {item.kind === 'dish' && item.recipe && (
-                  <Link
-                    to={`/cook/${item.recipe.id}?meal=${meal.id}&item=${item.id}`}
-                    className={`btn btn-sm ${due ? 'btn-primary' : 'btn-outline'}`}
-                  >
-                    <ChefHat size={16} aria-hidden="true" />
-                    Cook
-                  </Link>
-                )}
-              </div>
-              {showPresets && item.recipe && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {item.recipe.timers.map((timer) => (
-                    <StepTimer
-                      key={timer.id}
-                      recipeId={item.recipe!.id}
-                      recipeName={item.recipe!.name}
-                      timer={timer}
-                      board={board}
-                      color={item.color}
-                      compact
-                    />
-                  ))}
-                </div>
+              ) : (
+                <span className="w-[4.6ch] flex-none text-sm text-ink-2">No time</span>
               )}
-            </li>
-          );
-        })}
-      </ol>
-      {upcoming.length > shown.length && (
-        <Link
-          to={`/plan?meal=${meal.id}`}
-          className="mt-2 inline-block text-sm font-semibold underline decoration-rule decoration-2 underline-offset-4"
-        >
-          {upcoming.length - shown.length} more on the schedule
-        </Link>
-      )}
-    </>
+              <div className="min-w-0 flex-1">
+                <p className="marker text-xl leading-tight" style={{ color: 'var(--mk)' }}>
+                  {item.title}
+                </p>
+                {start && <StartsIn start={start} />}
+              </div>
+              {showCook && item.cook && <Avatar user={item.cook} size="sm" filled={item.cook.id === meId} />}
+              {onClaim && (
+                <button type="button" className="btn btn-outline btn-sm" onClick={() => onClaim(item)}>
+                  I'll cook it
+                </button>
+              )}
+              {!onClaim && item.kind === 'dish' && item.recipe && (
+                <Link
+                  to={`/cook/${item.recipe.id}?meal=${meal.id}&item=${item.id}`}
+                  className={`btn btn-sm ${due ? 'btn-primary' : 'btn-outline'}`}
+                >
+                  <ChefHat size={16} aria-hidden="true" />
+                  Cook
+                </Link>
+              )}
+            </div>
+            {showPresets && item.recipe && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {item.recipe.timers.map((timer) => (
+                  <StepTimer
+                    key={timer.id}
+                    recipeId={item.recipe!.id}
+                    recipeName={item.recipe!.name}
+                    timer={timer}
+                    board={board}
+                    color={item.color}
+                    compact
+                  />
+                ))}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
+};
+
+const byStart = (a: MealItem, b: MealItem) => {
+  if (!a.start_at) return 1;
+  if (!b.start_at) return -1;
+  return a.start_at.localeCompare(b.start_at) || a.id - b.id;
 };
 
 const TimerBoard = ({ board }: { board: KitchenTimers }) => {
@@ -275,16 +296,46 @@ const TimerBoard = ({ board }: { board: KitchenTimers }) => {
 const Kitchen = ({ familyId }: { familyId: number }) => {
   const board = useKitchenTimers(familyId);
   const { data: meals, isLoading } = useMeals(familyId);
+  const { user, userId, canManage } = useMe();
+  const { data: requests = [] } = useJoinRequests(familyId, canManage);
+  const now = useNow(30000);
   const [openedAt] = useState(() => new Date());
   const meal = useMemo(() => (meals ? pickCurrentMeal(meals, openedAt) : undefined), [meals, openedAt]);
+  const updateItem = useUpdateMealItem(familyId, meal?.id ?? 0);
 
   if (isLoading || board.isLoading) return <Spinner />;
+
+  const items = meal ? [...meal.items].sort(byStart) : [];
+  const openDishes = items.filter((item) => item.kind === 'dish' && !item.done);
+  const yours = openDishes.filter((item) => item.cook?.id === userId);
+  const needCook = openDishes.filter((item) => !item.cook);
+  // Everyone's schedule: open dishes, and events that have not started
+  const upcoming = items.filter((item) =>
+    item.kind === 'dish' ? !item.done : !!item.start_at && new Date(item.start_at) > now
+  );
+  const shownUpcoming = upcoming.slice(0, 6);
+
+  // Requests come first on a phone, and sit in the side column on a wide screen
+  const joinPanel = (headingId: string, visibility: string) =>
+    canManage &&
+    requests.length > 0 && (
+      <section aria-labelledby={headingId} className={visibility}>
+        <h2 id={headingId} className="marker flex items-baseline gap-2 text-3xl">
+          Asking to join
+          <span className="rounded-full bg-hot px-2 py-0.5 font-sans text-sm font-bold text-on-hot">
+            {requests.length}
+          </span>
+        </h2>
+        <JoinRequests familyId={familyId} requests={requests} compact />
+      </section>
+    );
 
   return (
     <div className="grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_23rem]">
       <div className="space-y-8">
+        {joinPanel('join-heading-top', 'lg:hidden')}
         {meal ? (
-          <MealCountdown meal={meal} />
+          <MealCountdown meal={meal} meId={userId} />
         ) : (
           <section className="sheet px-5 py-5 sm:px-7">
             <h1 className="marker text-3xl">No meal planned</h1>
@@ -297,17 +348,70 @@ const Kitchen = ({ familyId }: { familyId: number }) => {
             </Link>
           </section>
         )}
+
+        {meal && yours.length > 0 && (
+          <section aria-labelledby="yours-heading">
+            <h2 id="yours-heading" className="marker text-3xl">
+              {user?.first_name ? `${user.first_name}, you're cooking` : "You're cooking"}
+            </h2>
+            <DishList meal={meal} items={yours} board={board} meId={userId} presets="all" />
+          </section>
+        )}
+
         <TimerBoard board={board} />
       </div>
 
-      {meal && (
-        <aside aria-labelledby="next-heading">
-          <h2 id="next-heading" className="marker text-3xl">
-            Up next
-          </h2>
-          <UpNext meal={meal} board={board} />
-        </aside>
-      )}
+      <aside className="space-y-8">
+        {joinPanel('join-heading', 'hidden lg:block')}
+
+        {meal && (
+          <section aria-labelledby="next-heading">
+            <h2 id="next-heading" className="marker text-3xl">
+              Up next for everyone
+            </h2>
+            {upcoming.length === 0 ? (
+              <p className="mt-2 text-ink-2">
+                {meal.items.some((item) => item.kind === 'dish')
+                  ? 'Every dish is checked off.'
+                  : 'Add dishes to the plan and their start times count down here.'}
+              </p>
+            ) : (
+              <>
+                <DishList meal={meal} items={shownUpcoming} board={board} meId={userId} showCook presets="dueAndNext" />
+                {upcoming.length > shownUpcoming.length && (
+                  <Link
+                    to={`/plan?meal=${meal.id}`}
+                    className="mt-2 inline-block text-sm font-semibold underline decoration-rule decoration-2 underline-offset-4"
+                  >
+                    {upcoming.length - shownUpcoming.length} more on the schedule
+                  </Link>
+                )}
+              </>
+            )}
+          </section>
+        )}
+
+        {meal && needCook.length > 0 && (
+          <section aria-labelledby="open-heading">
+            <h2 id="open-heading" className="marker text-3xl">
+              Needs a cook
+            </h2>
+            {updateItem.isError && (
+              <div className="mt-2">
+                <Notice>That did not go through. Try again.</Notice>
+              </div>
+            )}
+            <DishList
+              meal={meal}
+              items={needCook}
+              board={board}
+              meId={userId}
+              presets="none"
+              onClaim={(item) => updateItem.mutate({ itemId: item.id, data: { assigned_to_id: userId } })}
+            />
+          </section>
+        )}
+      </aside>
     </div>
   );
 };
@@ -321,7 +425,7 @@ export const KitchenPage = () => {
   } else if (error) {
     content = <Notice>Your family did not load. Check your connection and reload the page.</Notice>;
   } else if (families.length === 0) {
-    content = <FirstFamily />;
+    content = <Welcome />;
   } else if (!activeFamily) {
     content = <Spinner />;
   } else {

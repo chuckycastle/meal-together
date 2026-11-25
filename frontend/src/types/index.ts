@@ -72,8 +72,35 @@ export interface Family {
   description?: string;
   member_count: number;
   members?: FamilyMember[];
+  /** New accounts can ask to join this family */
+  accepts_join_requests?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface JoinableFamily {
+  id: number;
+  name: string;
+  member_count: number;
+}
+
+export interface JoinRequest {
+  id: number;
+  family_id: number;
+  family_name: string;
+  user_id: number;
+  user: User | null;
+  note: string | null;
+  status: 'pending' | 'approved' | 'declined';
+  created_at: string;
+  decided_at: string | null;
+}
+
+export interface JoinStatus {
+  /** Families that accept requests and that this person is not in */
+  families: JoinableFamily[];
+  /** This person's latest request per family */
+  requests: JoinRequest[];
 }
 
 export interface FamilyMember {
@@ -306,6 +333,7 @@ export interface MealItemRecipe {
   cook_time: number;
   total_time: number;
   servings: number;
+  assigned_to_id: number | null;
   timers: Array<Pick<RecipeTimer, 'id' | 'name' | 'duration' | 'step_order'>>;
 }
 
@@ -318,8 +346,12 @@ export interface MealItem {
   recipe: MealItemRecipe | null;
   start_at: string | null; // ISO 8601, UTC
   color: MarkerColor;
+  /** Cook set on this dish, if any */
   assigned_to_id: number | null;
   assigned_to: User | null;
+  /** Who cooks it: the dish's own cook, or else the cook of its recipe */
+  cook: User | null;
+  cook_source: 'dish' | 'recipe' | null;
   done: boolean;
   done_at: string | null;
   done_by_id: number | null;

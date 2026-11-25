@@ -16,12 +16,16 @@ const ITEM_KINDS = ['dish', 'event'] as const;
 const MAX_ITEMS_PER_MEAL = 100;
 
 const ITEM_SELECT = `SELECT i.*, r.name AS r_name, r.prep_time AS r_prep_time, r.cook_time AS r_cook_time,
-    r.servings AS r_servings, ${userColumns('u', 'u')}
+    r.servings AS r_servings, r.assigned_to_id AS r_assigned_to_id, ${userColumns('u', 'u')}, ${userColumns('ru', 'ru')}
   FROM meal_items i
   LEFT JOIN recipes r ON r.id = i.recipe_id
-  LEFT JOIN users u ON u.id = i.assigned_to_id`;
+  LEFT JOIN users u ON u.id = i.assigned_to_id
+  LEFT JOIN users ru ON ru.id = r.assigned_to_id`;
 
 function itemDict(row: Row, timers: Row[]): Row {
+  // The cook is the person set on the dish, or else the cook of its recipe
+  const dishCook = userDict(row, 'u');
+  const recipeCook = userDict(row, 'ru');
   return {
     id: row.id,
     meal_id: row.meal_id,
@@ -38,6 +42,7 @@ function itemDict(row: Row, timers: Row[]): Row {
             cook_time: row.r_cook_time,
             total_time: row.r_prep_time + row.r_cook_time,
             servings: row.r_servings,
+            assigned_to_id: row.r_assigned_to_id,
             timers: timers.map((timer) => ({
               id: timer.id,
               name: timer.name,
@@ -48,7 +53,9 @@ function itemDict(row: Row, timers: Row[]): Row {
     start_at: row.start_at,
     color: row.color,
     assigned_to_id: row.assigned_to_id,
-    assigned_to: userDict(row, 'u'),
+    assigned_to: dishCook,
+    cook: dishCook ?? recipeCook,
+    cook_source: dishCook ? 'dish' : recipeCook ? 'recipe' : null,
     done: row.done_at !== null,
     done_at: row.done_at,
     done_by_id: row.done_by_id,

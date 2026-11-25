@@ -36,6 +36,8 @@ import type {
   BoardTimerListResponse,
   BoardTimerResponse,
   CreateBoardTimerRequest,
+  JoinRequest,
+  JoinStatus,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
@@ -238,7 +240,10 @@ class ApiClient {
     return response.data.family;
   }
 
-  async updateFamily(familyId: number, data: Partial<CreateFamilyRequest>): Promise<Family> {
+  async updateFamily(
+    familyId: number,
+    data: Partial<CreateFamilyRequest> & { accepts_join_requests?: boolean }
+  ): Promise<Family> {
     const response = await this.client.put<{ family: Family }>(`/api/families/${familyId}`, data);
     return response.data.family;
   }
@@ -306,7 +311,7 @@ class ApiClient {
     await this.client.delete(`/api/families/${familyId}/recipes/${recipeId}`);
   }
 
-  async assignRecipe(familyId: number, recipeId: number, userId: number): Promise<Recipe> {
+  async assignRecipe(familyId: number, recipeId: number, userId: number | null): Promise<Recipe> {
     const response = await this.client.post<{ recipe: Recipe }>(
       `/api/families/${familyId}/recipes/${recipeId}/assign`,
       { user_id: userId }
@@ -574,6 +579,42 @@ class ApiClient {
 
   async deleteBoardTimer(familyId: number, timerId: number): Promise<void> {
     await this.client.delete(`/api/families/${familyId}/timers/${timerId}`);
+  }
+
+  // ============================================================================
+  // Requests to join a family
+  // ============================================================================
+
+  async getJoinStatus(): Promise<JoinStatus> {
+    const response = await this.client.get<JoinStatus>('/api/join');
+    return response.data;
+  }
+
+  async requestToJoin(familyId: number, note?: string): Promise<JoinRequest> {
+    const response = await this.client.post<{ request: JoinRequest }>('/api/join', {
+      family_id: familyId,
+      note: note || undefined,
+    });
+    return response.data.request;
+  }
+
+  async withdrawJoinRequest(requestId: number): Promise<void> {
+    await this.client.delete(`/api/join/${requestId}`);
+  }
+
+  async getJoinRequests(familyId: number): Promise<JoinRequest[]> {
+    const response = await this.client.get<{ requests: JoinRequest[] }>(
+      `/api/families/${familyId}/join-requests`
+    );
+    return response.data.requests;
+  }
+
+  async approveJoinRequest(familyId: number, requestId: number, role: 'member' | 'admin'): Promise<void> {
+    await this.client.post(`/api/families/${familyId}/join-requests/${requestId}/approve`, { role });
+  }
+
+  async declineJoinRequest(familyId: number, requestId: number): Promise<void> {
+    await this.client.post(`/api/families/${familyId}/join-requests/${requestId}/decline`);
   }
 }
 

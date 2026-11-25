@@ -60,6 +60,10 @@ wrangler d1 execute mealtogether --remote --file /tmp/seed.sql
 
 The script adds eight holiday recipes and the Thanksgiving 2026 schedule to the family that the account belongs to. It adds only missing rows.
 
+## Let new accounts ask to join
+
+An owner or organizer turns this on from the Family page ("Let new accounts ask to join"). It sets `families.accepts_join_requests`. While at least one family accepts requests, a new account sees a button to ask to join instead of the form to start a family.
+
 ## Local development
 
 ```bash

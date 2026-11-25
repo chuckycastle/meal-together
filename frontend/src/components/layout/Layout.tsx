@@ -10,6 +10,8 @@ import { Timer, CalendarClock, BookOpen, ShoppingBasket, Moon, Sun, LogOut, User
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useJoinRequests } from '../../hooks/useJoin';
+import { useMe } from '../../hooks/useMe';
 import { Avatar } from '../kit';
 import { TimerDock } from './TimerDock';
 
@@ -32,6 +34,9 @@ const AccountMenu = () => {
   const { user, logout } = useAuth();
   const { activeFamily, families, setActiveFamily } = useFamily();
   const { theme, toggleTheme } = useTheme();
+  const { canManage } = useMe();
+  const { data: requests = [] } = useJoinRequests(activeFamily?.id, canManage);
+  const waiting = requests.length;
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -65,11 +70,20 @@ const AccountMenu = () => {
         aria-haspopup="menu"
         className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 sm:pr-3 hover:bg-paper"
       >
-        <Avatar user={user} />
+        <span className="relative">
+          <Avatar user={user} />
+          {waiting > 0 && (
+            <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-hot px-1 text-xs font-bold text-on-hot">
+              {waiting}
+            </span>
+          )}
+        </span>
         <span className="hidden max-w-40 truncate text-sm font-semibold sm:block">
           {activeFamily?.name ?? user.first_name}
         </span>
-        <span className="sr-only">Account menu</span>
+        <span className="sr-only">
+          Account menu{waiting > 0 ? `, ${waiting} asking to join` : ''}
+        </span>
       </button>
 
       {open && (
@@ -111,7 +125,12 @@ const AccountMenu = () => {
           <div className="border-t border-line pt-2">
             <Link to="/families" role="menuitem" className={itemClass} onClick={() => setOpen(false)}>
               <Users size={18} aria-hidden="true" />
-              Family and members
+              <span className="flex-1">Family and members</span>
+              {waiting > 0 && (
+                <span className="rounded-full bg-hot px-2 py-0.5 text-xs font-bold text-on-hot">
+                  {waiting} asking to join
+                </span>
+              )}
             </Link>
             <Link to="/profile" role="menuitem" className={itemClass} onClick={() => setOpen(false)}>
               <UserRound size={18} aria-hidden="true" />
