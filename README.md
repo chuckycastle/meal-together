@@ -17,13 +17,19 @@ Collaborative meal planning and cooking coordination for families and groups.
 
 ## Tech Stack
 
-### Backend
+### Backend (local, not deployed)
 - Flask 3.0 + Flask-SocketIO (WebSocket)
 - Flask-JWT-Extended (JWT authentication)
 - Flask-Caching + Redis (caching layer)
 - SQLAlchemy (ORM) + PostgreSQL
 - Celery (background tasks)
 - Optimistic locking (race condition prevention)
+
+### Production API (Cloudflare)
+- Cloudflare Worker in TypeScript, no runtime dependencies
+- D1 (SQLite) database
+- PBKDF2-SHA256 password hashes and HS256 tokens on WebCrypto
+- Rate limiting binding on sign-in, sign-up, and password change
 
 ### Frontend
 - React 18 + TypeScript
@@ -343,27 +349,17 @@ npm test
 
 ### Production Deployment
 
-The application is deployed to AWS Lightsail at **mealtogether.chuckycastle.io**.
-
-**Quick deployment** (after code changes):
+Production runs on Cloudflare at **mealtogether.chuckycastle.io**: one Worker (`worker/`) serves the built frontend and the JSON API, backed by a D1 database.
 
 ```bash
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
-  'cd /opt/applications/meal-together && \
-   git pull && \
-   cd frontend && \
-   npm run build && \
-   sudo systemctl reload nginx'
+cd worker
+npm install
+npm run deploy
 ```
 
-For comprehensive deployment documentation, including:
-- Initial server setup
-- Environment configuration
-- Database migrations
-- Troubleshooting
-- Rollback procedures
+See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for authentication, migrations, secrets, the recipe loader, logs, and rollback.
 
-See **[DEPLOYMENT.md](./DEPLOYMENT.md)**
+The Flask backend in `backend/` is not deployed. It runs locally and documents the original API.
 
 ## Environment Variables
 
