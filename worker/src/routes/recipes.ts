@@ -277,8 +277,12 @@ route('DELETE', '/api/families/:familyId/recipes/:recipeId', 'member', async (ct
 route('POST', '/api/families/:familyId/recipes/:recipeId/assign', 'member', async (ctx) => {
   const { familyId, recipeId } = ctx.params;
   await loadRecipe(ctx.env, familyId, recipeId, false);
-  const userId = integer(ctx.body.user_id, 'user_id', { min: 1, max: Number.MAX_SAFE_INTEGER });
-  await requireMember(ctx.env, familyId, userId);
+  // null removes the cook
+  const userId =
+    ctx.body.user_id === null
+      ? null
+      : integer(ctx.body.user_id, 'user_id', { min: 1, max: Number.MAX_SAFE_INTEGER });
+  if (userId !== null) await requireMember(ctx.env, familyId, userId);
 
   await run(ctx.env, 'UPDATE recipes SET assigned_to_id = ?, updated_at = ? WHERE id = ?', userId, nowIso(), recipeId);
   return json({

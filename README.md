@@ -11,7 +11,10 @@ Collaborative meal planning and cooking coordination for families and groups.
 - **Timer Board**: Shared countdowns and stopwatches with add-time, pause, reset, and overtime after zero
 - **Cook Mode**: One recipe step per screen with preset timers and screen wake lock
 - **Shopping From a Meal**: Add every ingredient on a meal's menu to the shopping list, merged by name and grouped by store section
-- **Family Groups**: Role-based access control (Owner, Admin, Member)
+- **Family Groups**: Role-based access control (Owner, Organizer, Member)
+- **Join Requests**: A new account asks to join a family that accepts requests; an owner or organizer approves or declines
+- **Recipe Cooks**: Assign a recipe to a member. Dishes on a meal show that person as the cook unless the dish is given to someone else
+- **Personal Views**: Kitchen lists the signed-in person's dishes first, dishes with no cook to claim, and, for organizers, pending requests. Plan and Recipes filter to that person's items
 - **Real-Time Updates**: WebSocket-based live collaboration
 - **Performance Optimized**: Redis caching, lazy loading, code splitting
 
@@ -252,6 +255,28 @@ Authorization: Bearer <token>
   "color": "brown"
 }
 ```
+
+### Join Requests
+
+```http
+GET    /api/join                                                   # families open to requests, and your requests
+POST   /api/join                                                   # {"family_id": 1, "note": "optional"}
+DELETE /api/join/{request_id}                                      # withdraw your open request
+GET    /api/families/{family_id}/join-requests                     # owner or organizer
+POST   /api/families/{family_id}/join-requests/{id}/approve        # {"role": "member" | "admin"}
+POST   /api/families/{family_id}/join-requests/{id}/decline
+PUT    /api/families/{family_id}                                   # {"accepts_join_requests": true}
+```
+
+A pending request gives no access to the family. A declined person cannot ask again; an owner or organizer can still add them by email.
+
+### Cooks
+
+```http
+POST /api/families/{family_id}/recipes/{recipe_id}/assign          # {"user_id": 7} or {"user_id": null}
+```
+
+Meal items return `assigned_to` (cook set on the dish), `cook` (that person, or else the recipe's cook), and `cook_source` (`dish`, `recipe`, or `null`). Removing someone from a family clears their recipes and dishes.
 
 ### Timer Board
 

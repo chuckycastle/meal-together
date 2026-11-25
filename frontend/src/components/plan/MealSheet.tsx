@@ -13,6 +13,10 @@ import { durationLabel } from '../../lib/time';
 interface MealSheetProps {
   meal: Meal;
   now: Date;
+  /** The signed-in person, to mark their dishes */
+  meId: number;
+  /** Show only the signed-in person's dishes */
+  mineOnly?: boolean;
   onToggle: (item: MealItem, done: boolean) => void;
   onEdit: (item: MealItem) => void;
 }
@@ -41,9 +45,11 @@ function groupByStart(items: MealItem[]): TimeGroup[] {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export const MealSheet = ({ meal, now, onToggle, onEdit }: MealSheetProps) => {
+export const MealSheet = ({ meal, now, meId, mineOnly = false, onToggle, onEdit }: MealSheetProps) => {
   const serveAt = new Date(meal.serve_at);
-  const dishes = meal.items.filter((item) => item.kind === 'dish');
+  const dishes = meal.items.filter(
+    (item) => item.kind === 'dish' && (!mineOnly || item.cook?.id === meId)
+  );
   const groups = groupByStart(dishes);
   const nextGroup = groups.find((group) => group.start && group.start > now);
 
@@ -96,7 +102,24 @@ export const MealSheet = ({ meal, now, onToggle, onEdit }: MealSheetProps) => {
                     </p>
                   </div>
                   <div className="flex w-full items-center gap-2 pl-11 sm:w-auto sm:pl-0">
-                    {item.assigned_to && <Avatar user={item.assigned_to} size="sm" />}
+                    {item.cook ? (
+                      <button
+                        type="button"
+                        className="rounded-full"
+                        onClick={() => onEdit(item)}
+                        aria-label={`${item.title} is cooked by ${item.cook.first_name}. Change cook`}
+                      >
+                        <Avatar user={item.cook} size="sm" filled={item.cook.id === meId} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="rounded-full border-[1.5px] border-dashed border-ink-3 px-2.5 py-0.5 text-xs font-semibold text-ink-2 hover:border-ink hover:text-ink"
+                        onClick={() => onEdit(item)}
+                      >
+                        Needs a cook
+                      </button>
+                    )}
                     {item.recipe && !item.done && (
                       <Link
                         to={`/cook/${item.recipe.id}?meal=${meal.id}&item=${item.id}`}
@@ -121,6 +144,12 @@ export const MealSheet = ({ meal, now, onToggle, onEdit }: MealSheetProps) => {
           </div>
         );
       })}
+
+      {groups.length === 0 && (
+        <p className="sheet-row px-5 py-6 text-ink-2">
+          {mineOnly ? 'No dishes are assigned to you for this meal.' : 'No dishes yet.'}
+        </p>
+      )}
 
       <div className="sheet-row grid grid-cols-[5.25rem_minmax(0,1fr)] sm:grid-cols-[8.75rem_minmax(0,1fr)]">
         <div className="border-r-2 border-rule px-2 py-4 sm:px-5">

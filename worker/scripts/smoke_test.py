@@ -117,6 +117,9 @@ def main():
     status, body, _ = call(base, 'POST', '/api/auth/register', {
         'email': other_email, 'password': password, 'first_name': 'Otto', 'last_name': 'Other'})
     other, other_id = body.get('access_token'), body['user']['id']
+    status, body, _ = call(base, 'POST', '/api/auth/register', {
+        'email': f'outsider-{run}@example.test', 'password': password, 'first_name': 'Olga', 'last_name': 'Outsider'})
+    outsider, outsider_id = body.get('access_token'), body['user']['id']
 
     # Families
     status, body, _ = call(base, 'GET', '/api/families', token=owner)
@@ -188,6 +191,24 @@ def main():
           and item.get('title') == 'Better pie' and item['recipe']['timers'][0]['name'] == 'Bake pie', body)
     status, body, _ = call(base, 'POST', m + '/items', {'recipe_id': rid2, 'title': 'Sides', 'assigned_to_id': other_id}, token=owner)
     check('add second dish with a cook', status == 201 and len(body['meal']['items']) == 2, body)
+    by_title = {i['title']: i for i in body['meal']['items']}
+    check('dish without its own cook takes the recipe cook', by_title['Better pie']['cook']['id'] == owner_id
+          and by_title['Better pie']['cook_source'] == 'recipe' and by_title['Better pie']['assigned_to'] is None, body)
+    check('dish with its own cook keeps it', by_title['Sides']['cook']['id'] == other_id
+          and by_title['Sides']['cook_source'] == 'dish', body)
+    status, body, _ = call(base, 'POST', f + f'/recipes/{rid}/assign', {'user_id': other_id}, token=owner)
+    check('assign recipe to a member', status == 200 and body['recipe']['assigned_to']['id'] == other_id, body)
+    status, body, _ = call(base, 'GET', m, token=owner)
+    pie = next(i for i in body['meal']['items'] if i['title'] == 'Better pie')
+    check('reassigning the recipe moves the dish', pie['cook']['id'] == other_id, body)
+    status, body, _ = call(base, 'POST', f + f'/recipes/{rid}/assign', {'user_id': outsider_id}, token=owner)
+    check('recipe cannot go to someone outside the family', status == 404, body)
+    status, body, _ = call(base, 'POST', f + f'/recipes/{rid}/assign', {'user_id': None}, token=owner)
+    check('unassign recipe', status == 200 and body['recipe']['assigned_to'] is None, body)
+    status, body, _ = call(base, 'GET', m, token=owner)
+    pie = next(i for i in body['meal']['items'] if i['title'] == 'Better pie')
+    check('dish has no cook when neither is set', pie['cook'] is None and pie['cook_source'] is None, body)
+    call(base, 'POST', f + f'/recipes/{rid}/assign', {'user_id': owner_id}, token=owner)
     status, body, _ = call(base, 'POST', m + '/items', {'kind': 'event', 'title': 'Parade', 'start_at': '2026-11-26T16:30:00Z'}, token=owner)
     check('add event, sorted first', status == 201 and body['meal']['items'][0]['title'] == 'Parade', body)
     status, body, _ = call(base, 'POST', m + '/items', {'title': 'x', 'color': 'purple'}, token=owner)
@@ -259,6 +280,64 @@ def main():
     kept = next(i for i in body['meal']['items'] if i['id'] == item['id'])
     check('dish stays without its recipe', kept['recipe'] is None and kept['title'] == 'Better pie', body)
 
+    # Requests to join
+    status, body, _ = call(base, 'GET', '/api/join', token=outsider)
+    check('closed family is not offered', status == 200 and all(x['id'] != fam for x in body['families']), body)
+    status, body, _ = call(base, 'POST', '/api/join', {'family_id': fam}, token=outsider)
+    check('closed family rejects requests', status == 404, body)
+    status, body, _ = call(base, 'PUT', f, {'accepts_join_requests': True}, token=other)
+    check('member cannot open the family to requests', status == 403, body)
+    status, body, _ = call(base, 'PUT', f, {'accepts_join_requests': True}, token=owner)
+    check('owner opens the family to requests', status == 200 and body['family']['accepts_join_requests'] is True, body)
+    status, body, _ = call(base, 'GET', '/api/join', token=outsider)
+    check('open family is offered', status == 200 and any(x['id'] == fam for x in body['families']), body)
+    status, body, _ = call(base, 'GET', '/api/join', token=other)
+    check('a member is not offered their own family', all(x['id'] != fam for x in body['families']), body)
+    status, body, _ = call(base, 'POST', '/api/join', {'family_id': fam, 'note': 'Aunt Olga'}, token=outsider)
+    check('request to join', status == 201 and body['request']['status'] == 'pending', body)
+    request_id = body['request']['id']
+    status, body, _ = call(base, 'POST', '/api/join', {'family_id': fam}, token=outsider)
+    check('asking twice keeps one request', status == 200 and body['request']['id'] == request_id, body)
+    status, body, _ = call(base, 'GET', f, token=outsider)
+    check('a pending request gives no access', status == 404, body)
+    status, body, _ = call(base, 'GET', f + '/join-requests', token=other)
+    check('member cannot see requests', status == 403, body)
+    status, body, _ = call(base, 'POST', f + f'/join-requests/{request_id}/approve', token=other)
+    check('member cannot approve', status == 403, body)
+    status, body, _ = call(base, 'POST', f + f'/join-requests/{request_id}/approve', token=outsider)
+    check('requester cannot approve themselves', status == 404, body)
+    status, body, _ = call(base, 'GET', f + '/join-requests', token=owner)
+    check('owner sees the request', status == 200 and len(body['requests']) == 1
+          and body['requests'][0]['user']['id'] == outsider_id and body['requests'][0]['note'] == 'Aunt Olga', body)
+    status, body, _ = call(base, 'POST', f + f'/join-requests/{request_id}/approve', {'role': 'owner'}, token=owner)
+    check('approval cannot grant owner', status == 400, body)
+    status, body, _ = call(base, 'POST', f + f'/join-requests/{request_id}/approve', {'role': 'admin'}, token=owner)
+    check('approve as admin', status == 200, body)
+    status, body, _ = call(base, 'POST', f + f'/join-requests/{request_id}/approve', token=owner)
+    check('approving twice conflicts', status == 409, body)
+    status, body, _ = call(base, 'GET', '/api/families', token=outsider)
+    mine = next((x for x in body['families'] if x['id'] == fam), None)
+    check('approved person is in the family as admin', mine is not None
+          and any(x['user_id'] == outsider_id and x['role'] == 'admin' for x in mine['members']), body)
+    status, body, _ = call(base, 'GET', f + '/join-requests', token=outsider)
+    check('new admin can see requests', status == 200 and body['requests'] == [], body)
+
+    status, body, _ = call(base, 'POST', '/api/auth/register', {
+        'email': f'fourth-{run}@example.test', 'password': password, 'first_name': 'Fay', 'last_name': 'Fourth'})
+    fourth = body.get('access_token')
+    status, body, _ = call(base, 'POST', '/api/join', {'family_id': fam}, token=fourth)
+    declined_id = body['request']['id']
+    status, body, _ = call(base, 'DELETE', f'/api/join/{declined_id}', token=other)
+    check('only the requester can withdraw', status == 404, body)
+    status, body, _ = call(base, 'POST', f + f'/join-requests/{declined_id}/decline', token=outsider)
+    check('admin declines', status == 200, body)
+    status, body, _ = call(base, 'POST', '/api/join', {'family_id': fam}, token=fourth)
+    check('declined person cannot ask again', status == 403, body)
+    status, body, _ = call(base, 'GET', '/api/join', token=fourth)
+    check('declined person sees the outcome', status == 200 and body['requests'][0]['status'] == 'declined', body)
+    status, body, _ = call(base, 'POST', f + '/members', {'email': f'fourth-{run}@example.test'}, token=owner)
+    check('owner can still add a declined person by email', status == 201, body)
+
     # Leaving and deleting
     status, body, _ = call(base, 'POST', f + '/leave', token=owner)
     check('owner cannot leave', status == 403, body)
@@ -266,6 +345,9 @@ def main():
     check('member leaves', status == 200, body)
     status, body, _ = call(base, 'GET', m, token=other)
     check('former member loses access', status == 404, body)
+    status, body, _ = call(base, 'GET', m, token=owner)
+    sides = next(i for i in body['meal']['items'] if i['title'] == 'Sides')
+    check('their dishes lose their cook', sides['assigned_to'] is None and sides['cook'] is None, body)
     status, body, _ = call(base, 'DELETE', f, token=owner)
     check('owner deletes the family', status == 200, body)
     status, body, _ = call(base, 'GET', '/api/families', token=owner)

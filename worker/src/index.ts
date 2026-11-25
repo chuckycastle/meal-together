@@ -12,6 +12,7 @@ import { routes } from './router';
 import type { Access, Ctx } from './router';
 import './routes/auth';
 import './routes/families';
+import './routes/join';
 import './routes/recipes';
 import './routes/shopping';
 import './routes/meals';

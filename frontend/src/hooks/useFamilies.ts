@@ -6,11 +6,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api';
 import type { CreateFamilyRequest, AddMemberRequest } from '../types';
 
-export const useFamilies = (enabled: boolean = true) => {
+export const useFamilies = (enabled: boolean = true, refetchInterval?: number) => {
   return useQuery({
     queryKey: ['families'],
     queryFn: () => apiClient.getFamilies(),
     enabled,
+    refetchInterval,
   });
 };
 
@@ -37,7 +38,8 @@ export const useUpdateFamily = (familyId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<CreateFamilyRequest>) => apiClient.updateFamily(familyId, data),
+    mutationFn: (data: Partial<CreateFamilyRequest> & { accepts_join_requests?: boolean }) =>
+      apiClient.updateFamily(familyId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['families'] });
       queryClient.invalidateQueries({ queryKey: ['families', familyId] });
@@ -62,7 +64,19 @@ export const useAddMember = (familyId: number) => {
   return useMutation({
     mutationFn: (data: AddMemberRequest) => apiClient.addFamilyMember(familyId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['families', familyId] });
+      queryClient.invalidateQueries({ queryKey: ['families'] });
+    },
+  });
+};
+
+export const useUpdateMemberRole = (familyId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ memberId, role }: { memberId: number; role: 'admin' | 'member' }) =>
+      apiClient.updateMemberRole(familyId, memberId, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['families'] });
     },
   });
 };
@@ -73,7 +87,9 @@ export const useRemoveMember = (familyId: number) => {
   return useMutation({
     mutationFn: (memberId: number) => apiClient.removeFamilyMember(familyId, memberId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['families', familyId] });
+      queryClient.invalidateQueries({ queryKey: ['families'] });
+      queryClient.invalidateQueries({ queryKey: ['meals', familyId] });
+      queryClient.invalidateQueries({ queryKey: ['recipes', familyId] });
     },
   });
 };

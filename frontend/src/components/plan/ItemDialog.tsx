@@ -195,13 +195,22 @@ export const ItemDialog = ({ meal, item, kind, recipes, members, onClose, onSave
                 value={assignedToId ?? ''}
                 onChange={(event) => setAssignedToId(event.target.value ? Number(event.target.value) : null)}
               >
-                <option value="">Nobody yet</option>
+                <option value="">
+                  {recipe?.assigned_to
+                    ? `${recipe.assigned_to.first_name}, who has this recipe`
+                    : 'Nobody yet'}
+                </option>
                 {members.map((member) => (
                   <option key={member.user_id} value={member.user_id}>
                     {member.user ? `${member.user.first_name} ${member.user.last_name}` : `Member ${member.user_id}`}
                   </option>
                 ))}
               </select>
+              {recipe && (
+                <p className="mt-1 text-sm text-ink-2">
+                  A choice here applies to this meal only. To change who has the recipe every time, open the recipe.
+                </p>
+              )}
             </div>
 
             <fieldset>

@@ -60,10 +60,13 @@ export const useAssignRecipe = (familyId: number, recipeId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userId: number) => apiClient.assignRecipe(familyId, recipeId, userId),
+    /** null removes the cook */
+    mutationFn: (userId: number | null) => apiClient.assignRecipe(familyId, recipeId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipes', familyId] });
       queryClient.invalidateQueries({ queryKey: ['recipes', familyId, recipeId] });
+      // Dishes without their own cook follow the recipe
+      queryClient.invalidateQueries({ queryKey: ['meals', familyId] });
     },
   });
 };

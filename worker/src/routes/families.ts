@@ -2,7 +2,7 @@
  * Families and their members
  */
 
-import { all, allIn, first, groupBy, run, userColumns, userDict } from '../db';
+import { all, allIn, batch, first, groupBy, run, stmt, userColumns, userDict } from '../db';
 import type { Env, Row } from '../db';
 import { HttpError, json, nowIso, oneOf, requiredText, text } from '../http';
 import { route } from '../router';
@@ -38,6 +38,7 @@ function familyDict(family: Row, members: Row[]): Row {
     description: family.description,
     member_count: members.length,
     members: members.map(memberDict),
+    accepts_join_requests: !!family.accepts_join_requests,
     created_at: family.created_at,
     updated_at: family.updated_at,
   };
@@ -60,6 +61,20 @@ async function loadMember(env: Env, familyId: number, memberId: number): Promise
   );
   if (!member) throw new HttpError(404, 'Member not found');
   return member;
+}
+
+/** Someone who leaves the family no longer cooks its recipes or dishes */
+function clearAssignments(env: Env, familyId: number, userId: number): D1PreparedStatement[] {
+  return [
+    stmt(env, 'UPDATE recipes SET assigned_to_id = NULL WHERE family_id = ? AND assigned_to_id = ?', familyId, userId),
+    stmt(
+      env,
+      `UPDATE meal_items SET assigned_to_id = NULL
+       WHERE assigned_to_id = ? AND meal_id IN (SELECT id FROM meals WHERE family_id = ?)`,
+      userId,
+      familyId
+    ),
+  ];
 }
 
 route('GET', '/api/families', 'user', async (ctx) => {
@@ -121,6 +136,18 @@ route('PUT', '/api/families/:familyId', 'admin', async (ctx) => {
       ctx.env,
       'UPDATE families SET description = ?, updated_at = ? WHERE id = ?',
       text(ctx.body.description, 'description', { max: 2000 }),
+      nowIso(),
+      familyId
+    );
+  }
+  if ('accepts_join_requests' in ctx.body) {
+    if (typeof ctx.body.accepts_join_requests !== 'boolean') {
+      throw new HttpError(400, 'accepts_join_requests must be true or false');
+    }
+    await run(
+      ctx.env,
+      'UPDATE families SET accepts_join_requests = ?, updated_at = ? WHERE id = ?',
+      ctx.body.accepts_join_requests,
       nowIso(),
       familyId
     );
@@ -191,7 +218,10 @@ route('DELETE', '/api/families/:familyId/members/:memberId', 'admin', async (ctx
   const member = await loadMember(ctx.env, familyId, memberId);
   if (member.role === 'owner') throw new HttpError(403, 'Cannot remove family owner');
 
-  await run(ctx.env, 'DELETE FROM family_members WHERE id = ?', memberId);
+  await batch(ctx.env, [
+    stmt(ctx.env, 'DELETE FROM family_members WHERE id = ?', memberId),
+    ...clearAssignments(ctx.env, familyId, member.user_id),
+  ]);
   return json({ message: 'Member removed successfully' });
 });
 
@@ -199,11 +229,14 @@ route('POST', '/api/families/:familyId/leave', 'member', async (ctx) => {
   if (ctx.role === 'owner') {
     throw new HttpError(403, 'Owner cannot leave family. Transfer ownership or delete family.');
   }
-  await run(
-    ctx.env,
-    'DELETE FROM family_members WHERE family_id = ? AND user_id = ?',
-    ctx.params.familyId,
-    ctx.userId
-  );
+  await batch(ctx.env, [
+    stmt(
+      ctx.env,
+      'DELETE FROM family_members WHERE family_id = ? AND user_id = ?',
+      ctx.params.familyId,
+      ctx.userId
+    ),
+    ...clearAssignments(ctx.env, ctx.params.familyId, ctx.userId),
+  ]);
   return json({ message: 'Left family successfully' });
 });
