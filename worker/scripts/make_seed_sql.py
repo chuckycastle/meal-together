@@ -3,10 +3,16 @@ Print SQL that loads the family holiday recipes and the Thanksgiving 2026
 schedule into a family in D1.
 
 The family is found from a member's email, or given by id. Only missing rows
-are added: recipes are matched by name, the meal by name, items by title.
+are added: recipes are matched by name, the meal by name, items by title. A
+schedule item that has no recipe is linked to the recipe it names.
 
     python3 scripts/make_seed_sql.py --email you@example.com --timezone America/Los_Angeles > /tmp/seed.sql
     wrangler d1 execute mealtogether --remote --file /tmp/seed.sql
+
+Add one recipe to a family that already has the rest, without a cook:
+
+    python3 scripts/make_seed_sql.py --family-id 1 --timezone America/Los_Angeles \
+        --recipe 'Brussels sprouts' --no-cook > /tmp/seed.sql
 """
 import argparse
 import os
@@ -34,7 +40,20 @@ def main():
     target.add_argument('--email', help='Email of a member of the family that receives the recipes')
     target.add_argument('--family-id', type=int)
     parser.add_argument('--timezone', required=True, help='IANA timezone of the kitchen, such as America/Los_Angeles')
+    parser.add_argument(
+        '--recipe',
+        action='append',
+        metavar='NAME',
+        help='Load only this recipe and link its schedule item; repeat for more. Skips the meal and its items.',
+    )
+    parser.add_argument('--no-cook', action='store_true', help='Leave new recipes without a cook instead of the owner')
     args = parser.parse_args()
+
+    known = {recipe['name'] for recipe in RECIPES}
+    unknown = [name for name in args.recipe or [] if name not in known]
+    if unknown:
+        sys.exit(f"No recipe named {', '.join(unknown)}. Choose from: {', '.join(sorted(known))}")
+    selected = set(args.recipe) if args.recipe else known
 
     tz = ZoneInfo(args.timezone)
     now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
@@ -47,6 +66,7 @@ def main():
             f'WHERE u.email = {q(args.email.strip().lower())} ORDER BY m.id LIMIT 1)'
         )
     owner = f"(SELECT user_id FROM family_members WHERE family_id = {family} AND role = 'owner' LIMIT 1)"
+    cook = 'NULL' if args.no_cook else owner
 
     def recipe_id(name):
         return f'(SELECT id FROM recipes WHERE family_id = {family} AND name = {q(name)} LIMIT 1)'
@@ -54,12 +74,14 @@ def main():
     out = []
     for recipe in RECIPES:
         name = recipe['name']
+        if name not in selected:
+            continue
         rid = recipe_id(name)
         out.append(
             'INSERT INTO recipes (family_id, name, description, prep_time, cook_time, servings, source_url, '
             'assigned_to_id, created_at, updated_at) '
             f"SELECT {family}, {q(name)}, {q(recipe['description'])}, {recipe['prep_time']}, {recipe['cook_time']}, "
-            f"{recipe['servings']}, {q(recipe['source_url'])}, {owner}, {q(now)}, {q(now)} "
+            f"{recipe['servings']}, {q(recipe['source_url'])}, {cook}, {q(now)}, {q(now)} "
             f'WHERE {family} IS NOT NULL AND NOT EXISTS (SELECT 1 FROM recipes WHERE family_id = {family} AND name = {q(name)});'
         )
         for position, (quantity, ingredient) in enumerate(recipe['ingredients']):
@@ -92,18 +114,29 @@ def main():
 
     meal_name = THANKSGIVING['name']
     meal = f'(SELECT id FROM meals WHERE family_id = {family} AND name = {q(meal_name)} LIMIT 1)'
-    out.append(
-        'INSERT INTO meals (family_id, name, serve_at, created_at, updated_at) '
-        f"SELECT {family}, {q(meal_name)}, {q(utc(*THANKSGIVING['serve_at']))}, {q(now)}, {q(now)} "
-        f'WHERE {family} IS NOT NULL AND NOT EXISTS (SELECT 1 FROM meals WHERE family_id = {family} AND name = {q(meal_name)});'
-    )
+    if not args.recipe:
+        out.append(
+            'INSERT INTO meals (family_id, name, serve_at, created_at, updated_at) '
+            f"SELECT {family}, {q(meal_name)}, {q(utc(*THANKSGIVING['serve_at']))}, {q(now)}, {q(now)} "
+            f'WHERE {family} IS NOT NULL AND NOT EXISTS '
+            f'(SELECT 1 FROM meals WHERE family_id = {family} AND name = {q(meal_name)});'
+        )
     for (hour, minute), title, kind, color, recipe_name in THANKSGIVING['items']:
         linked = recipe_id(recipe_name) if recipe_name else 'NULL'
-        out.append(
-            'INSERT INTO meal_items (meal_id, kind, title, recipe_id, start_at, color, created_at, updated_at) '
-            f'SELECT {meal}, {q(kind)}, {q(title)}, {linked}, {q(utc(hour, minute))}, {q(color)}, {q(now)}, {q(now)} '
-            f'WHERE {meal} IS NOT NULL AND NOT EXISTS (SELECT 1 FROM meal_items WHERE meal_id = {meal} AND title = {q(title)});'
-        )
+        if not args.recipe:
+            out.append(
+                'INSERT INTO meal_items (meal_id, kind, title, recipe_id, start_at, color, created_at, updated_at) '
+                f'SELECT {meal}, {q(kind)}, {q(title)}, {linked}, {q(utc(hour, minute))}, {q(color)}, '
+                f'{q(now)}, {q(now)} '
+                f'WHERE {meal} IS NOT NULL AND NOT EXISTS '
+                f'(SELECT 1 FROM meal_items WHERE meal_id = {meal} AND title = {q(title)});'
+            )
+        if recipe_name in selected:
+            # An item added before its recipe existed has no link; a link someone chose is kept
+            out.append(
+                f'UPDATE meal_items SET recipe_id = {linked}, updated_at = {q(now)} '
+                f'WHERE meal_id = {meal} AND title = {q(title)} AND recipe_id IS NULL AND {linked} IS NOT NULL;'
+            )
 
     print('\n'.join(out))
 

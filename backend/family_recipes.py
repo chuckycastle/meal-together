@@ -314,6 +314,38 @@ RECIPES = [
             ('Stuffing stands', 5, 5),
         ],
     },
+    {
+        'name': 'Brussels sprouts',
+        'description': 'Roasted cut side down with thyme, with toasted walnuts and pomegranate seeds. '
+                       'From the handwritten card, which names both 420°F and 500°F and gives no roasting '
+                       'time. Prep and cook times here are estimates.',
+        'prep_time': 15,
+        'cook_time': 25,
+        'servings': 6,
+        'source_url': None,
+        'ingredients': [
+            ('1 1/2 pounds', 'Brussels sprouts'),
+            ('3 tablespoons', 'Olive oil'),
+            (None, 'Thyme'),
+            ('1 pinch', 'Salt'),
+            ('1 pinch', 'Black pepper'),
+            (None, 'Walnuts'),
+            ('1', 'Pomegranate'),
+            ('for the sheet pan', 'Aluminum foil'),
+        ],
+        'steps': [
+            ('Cut the Brussels sprouts in half. Cover a sheet pan with foil.', 5),
+            ('Toss the sprouts with the thyme and olive oil. Add a pinch of salt and pepper.', 2),
+            ('Lay the sprouts out evenly on the pan, face down. Cook at 420°F.', None),
+            ('Toast the walnuts over medium heat for 5 minutes.', 5),
+            ('Fill a large bowl with water for the pomegranate. Score the pomegranate into 5 pieces, then pop '
+             'the seeds out under the water.', 10),
+            ('When the green bean casserole comes out, turn the oven up to 500°F.', None),
+        ],
+        'timers': [
+            ('Toast walnuts', 5, 4),
+        ],
+    },
 ]
 
 # The day as drawn on the family's schedule sheet: (local time, title, kind, color, recipe name)
@@ -332,7 +364,7 @@ THANKSGIVING = {
         ((15, 30), 'Green bean casserole', 'dish', 'green', 'Green bean casserole'),
         ((15, 30), 'Mashed potatoes', 'dish', 'tan', 'Mashed potatoes'),
         ((16, 0), 'Stuffing', 'dish', 'orange', "Mom's chorizo stuffing"),
-        ((16, 0), 'Brussels sprouts', 'dish', 'green', None),
+        ((16, 0), 'Brussels sprouts', 'dish', 'green', 'Brussels sprouts'),
         ((17, 30), 'Rolls', 'dish', 'tan', None),
     ],
 }

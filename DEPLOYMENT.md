@@ -58,7 +58,14 @@ python3 scripts/make_seed_sql.py --email you@example.com --timezone America/Los_
 wrangler d1 execute mealtogether --remote --file /tmp/seed.sql
 ```
 
-The script adds eight holiday recipes and the Thanksgiving 2026 schedule to the family that the account belongs to. It adds only missing rows.
+The script adds nine holiday recipes and the Thanksgiving 2026 schedule to the family that the account belongs to. It adds only missing rows, matching recipes by name, and links a schedule item that has no recipe to the recipe it names.
+
+A recipe renamed in the app no longer matches by name, so a full run adds it again. To add one recipe to a family that already has the rest, name it. `--no-cook` leaves it without a cook instead of assigning the owner:
+
+```bash
+python3 scripts/make_seed_sql.py --family-id 1 --timezone America/Los_Angeles --recipe 'Brussels sprouts' --no-cook > /tmp/seed.sql
+wrangler d1 execute mealtogether --remote --file /tmp/seed.sql
+```
 
 ## Let new accounts ask to join
 
