@@ -1,7 +1,0 @@
-# Pages are served by the Worker, which sets their security headers,
-# including a Content-Security-Policy with a per-request nonce (worker/src/pages.ts).
-# These rules cover the hashed files that skip the Worker.
-
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
-  X-Content-Type-Options: nosniff

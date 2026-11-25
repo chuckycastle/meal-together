@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Timer, CalendarClock, BookOpen, ShoppingBasket, Moon, Sun, LogOut, Users, UserRound, Check } from 'lucide-react';
+import { Timer, CalendarClock, BookOpen, ShoppingBasket, Moon, Sun, LogOut, Users, UserRound, Check, Tv } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -131,6 +131,10 @@ const AccountMenu = () => {
                   {waiting} asking to join
                 </span>
               )}
+            </Link>
+            <Link to="/tv" role="menuitem" className={itemClass} onClick={() => setOpen(false)}>
+              <Tv size={18} aria-hidden="true" />
+              Show on a TV
             </Link>
             <Link to="/profile" role="menuitem" className={itemClass} onClick={() => setOpen(false)}>
               <UserRound size={18} aria-hidden="true" />

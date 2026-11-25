@@ -85,11 +85,19 @@ curl -s -o /dev/null -w '%{http_code}\n' https://mealtogether.chuckycastle.io/ap
 
 Then sign in and check the Kitchen, Plan, Recipes, and Shopping pages.
 
-## Security headers
+## Pages, files, and headers
 
-The Worker serves every page and sets its headers in `worker/src/pages.ts`. Each HTML response carries a new nonce in `Content-Security-Policy` and is sent with `Cache-Control: no-store`, so a cached page is never paired with a different nonce. Cloudflare reads the nonce from that header and adds it to the bot-detection script it injects into pages; without it the browser blocks that script and logs a console error.
+The Worker handles every request (`run_worker_first: true`) and serves pages and files through the assets binding in `worker/src/pages.ts`.
 
-Hashed files under `/assets` skip the Worker. Their headers come from `frontend/public/_headers`.
+- **Pages.** Each HTML response carries a new nonce in `Content-Security-Policy` and is sent with `Cache-Control: no-store`, so a cached page is never paired with a different nonce. Cloudflare reads the nonce from that header and adds it to the bot-detection script it injects into pages; without it the browser blocks that script and logs a console error.
+- **Hashed files** under `/assets` are sent with `Cache-Control: public, max-age=31536000, immutable`.
+- **Missing files.** The assets binding answers an unknown path with the app shell. For a path that names a file (`/assets/index-abc.js`, `/favicon.ico`) the Worker returns `404` with `no-store` instead. Otherwise a tab that asks for a script from another deploy would receive HTML and cache it under the script's address.
+
+After a deploy, an open tab still names the previous build's files. When a page's file is gone, the frontend reloads once to pick up the new build (`lazyPage` in `frontend/src/router.tsx`).
+
+## TV dashboard
+
+`/tv` is a no-scroll screen for a kitchen TV: clock, time left until the meal, the schedule with cooks, and running timers. Open it on a signed-in phone, tablet, or computer and mirror that screen with AirPlay. It keeps the screen awake where the browser supports the Wake Lock API. Keys: `F` full screen, `T` light or dark colors, `S` timer sound.
 
 ## Logs
 

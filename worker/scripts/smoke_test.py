@@ -71,8 +71,15 @@ def main():
           and not headers.get('ETag'), dict(headers))
     asset = re.search(r'/assets/index-[^"]+\.js', html)
     with urllib.request.urlopen(base + asset.group(0), timeout=20) as script:
-        check('hashed files are cached long-term', 'immutable' in (script.headers.get('Cache-Control') or ''),
-              dict(script.headers))
+        check('hashed files are cached long-term', 'immutable' in (script.headers.get('Cache-Control') or '')
+              and 'javascript' in (script.headers.get('Content-Type') or ''), dict(script.headers))
+    for missing in ('/assets/index-does-not-exist.js', '/favicon.ico'):
+        try:
+            with urllib.request.urlopen(base + missing, timeout=20) as wrong:
+                check(f'missing file {missing} is not answered with a page', False, wrong.status)
+        except urllib.error.HTTPError as error:
+            check(f'missing file {missing} is a 404 that is not cached', error.code == 404
+                  and error.headers.get('Cache-Control') == 'no-store', dict(error.headers))
     with urllib.request.urlopen(base + '/plan', timeout=20) as page:
         check('client routes fall back to index.html', '<div id="root">' in page.read().decode())
 
