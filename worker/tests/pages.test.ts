@@ -52,6 +52,35 @@ describe('page responses', () => {
     expect(seen!.get('accept')).toBe('text/html');
   });
 
+  it('caches hashed files for a year', async () => {
+    const assets = {
+      fetch: async () => new Response('export {}', { headers: { 'content-type': 'text/javascript', etag: '"j"' } }),
+    };
+    const response = await servePage(new Request('https://example.test/assets/index-abc123.js'), assets);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('cache-control')).toBe('public, max-age=31536000, immutable');
+    expect(response.headers.get('content-security-policy')).toBeNull();
+  });
+
+  it('answers a missing file with 404 instead of the app shell', async () => {
+    const assets = { fetch: async () => html() };
+    for (const path of ['/assets/index-gone.js', '/assets/Page-old.css', '/favicon.ico', '/missing.woff2']) {
+      const response = await servePage(new Request(`https://example.test${path}`), assets);
+      expect(response.status, path).toBe(404);
+      expect(response.headers.get('cache-control'), path).toBe('no-store');
+      expect(await response.text()).not.toContain('<div');
+    }
+  });
+
+  it('still serves the app shell for page paths, including ones with dots in a folder name', async () => {
+    const assets = { fetch: async () => html() };
+    for (const path of ['/', '/plan', '/recipes/12', '/cook/3', '/index.html']) {
+      const response = await servePage(new Request(`https://example.test${path}`), assets);
+      expect(response.status, path).toBe(200);
+      expect(response.headers.get('content-security-policy'), path).toContain('nonce-');
+    }
+  });
+
   it('leaves other files cacheable and without a page policy', async () => {
     const assets = {
       fetch: async () =>

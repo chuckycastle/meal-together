@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Pencil, ChefHat } from 'lucide-react';
 import type { Meal, MealItem } from '../../types';
 import { Avatar, Clock, Tick } from '../kit';
+import { groupByStart } from '../../lib/meals';
 import { durationLabel } from '../../lib/time';
 
 interface MealSheetProps {
@@ -19,28 +20,6 @@ interface MealSheetProps {
   mineOnly?: boolean;
   onToggle: (item: MealItem, done: boolean) => void;
   onEdit: (item: MealItem) => void;
-}
-
-interface TimeGroup {
-  key: string;
-  start: Date | null;
-  items: MealItem[];
-}
-
-function groupByStart(items: MealItem[]): TimeGroup[] {
-  const groups = new Map<string, TimeGroup>();
-  for (const item of items) {
-    const start = item.start_at ? new Date(item.start_at) : null;
-    const key = start ? start.toISOString().slice(0, 16) : 'unscheduled';
-    const group = groups.get(key) ?? { key, start, items: [] };
-    group.items.push(item);
-    groups.set(key, group);
-  }
-  return [...groups.values()].sort((a, b) => {
-    if (!a.start) return 1;
-    if (!b.start) return -1;
-    return a.start.getTime() - b.start.getTime();
-  });
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;

@@ -14,40 +14,10 @@ import { TimerLine } from '../../components/layout/TimerDock';
 import { useFamily } from '../../contexts/FamilyContext';
 import { byUrgency, useKitchenTimers } from '../../hooks/useKitchenTimers';
 import { useUpdateMealItem } from '../../hooks/useMeals';
+import { useWakeLock } from '../../hooks/useWakeLock';
 import { useRecipe } from '../../hooks/useRecipes';
 import { looseTimers, sortedSteps, timersForStep } from '../../lib/recipes';
 import type { Recipe } from '../../types';
-
-/** Keep the screen on while cooking, where the browser allows it */
-function useWakeLock() {
-  useEffect(() => {
-    if (!('wakeLock' in navigator)) return;
-    let lock: WakeLockSentinel | null = null;
-    let cancelled = false;
-
-    const request = async () => {
-      try {
-        const sentinel = await navigator.wakeLock.request('screen');
-        if (cancelled) await sentinel.release();
-        else lock = sentinel;
-      } catch {
-        // Denied or unsupported: the screen follows the device setting
-      }
-    };
-
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') void request();
-    };
-
-    void request();
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      cancelled = true;
-      document.removeEventListener('visibilitychange', onVisible);
-      void lock?.release();
-    };
-  }, []);
-}
 
 function readStoredStep(recipeId: number, stepCount: number): number {
   const stored = Number(sessionStorage.getItem(`cook-step-${recipeId}`));

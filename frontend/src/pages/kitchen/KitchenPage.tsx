@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChefHat, Plus } from 'lucide-react';
+import { ChefHat, Plus, Tv } from 'lucide-react';
 import { Layout } from '../../components/layout';
 import { Avatar, BlankSlate, Clock, Notice, Spinner } from '../../components/kit';
 import { StepTimer } from '../../components/cook/StepTimer';
@@ -103,9 +103,15 @@ const MealCountdown = ({ meal, meId }: { meal: Meal; meId: number }) => {
             : `${done} of ${dishes.length} dishes done.`}{' '}
           {yourLine}
         </p>
-        <Link to={`/plan?meal=${meal.id}`} className="btn btn-outline btn-sm">
-          Open the full schedule
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link to={`/plan?meal=${meal.id}`} className="btn btn-outline btn-sm">
+            Open the full schedule
+          </Link>
+          <Link to="/tv" className="btn btn-outline btn-sm">
+            <Tv size={16} aria-hidden="true" />
+            Show on a TV
+          </Link>
+        </div>
       </div>
     </section>
   );

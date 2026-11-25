@@ -78,6 +78,16 @@ function playNote(
 }
 
 /**
+ * Browsers keep audio suspended until the person interacts with the page.
+ * Call this from a click, tap, or key press so a later chime can play.
+ */
+export function unlockAudio(): void {
+  if (AUDIO_CONTEXT && AUDIO_CONTEXT.state === 'suspended') {
+    void AUDIO_CONTEXT.resume().catch(() => undefined);
+  }
+}
+
+/**
  * Play timer completion chime (turkey pattern)
  * @param options - Chime configuration
  * @returns Promise that resolves when chime completes

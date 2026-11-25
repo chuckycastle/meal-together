@@ -3,23 +3,49 @@
  */
 
 import { lazy, Suspense } from 'react';
+import type { ComponentType } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
+const RELOAD_KEY = 'reloaded-for-missing-page';
+
+/**
+ * Lazy load a page. After a deploy, an open tab still names the previous
+ * build's files; when one is gone, reload once to pick up the new build.
+ */
+function lazyPage<T extends ComponentType>(load: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      const page = await load();
+      sessionStorage.removeItem(RELOAD_KEY);
+      return page;
+    } catch (error) {
+      if (!sessionStorage.getItem(RELOAD_KEY)) {
+        sessionStorage.setItem(RELOAD_KEY, '1');
+        window.location.reload();
+        // Keep the loading state on screen until the reload happens
+        return new Promise<{ default: T }>(() => undefined);
+      }
+      throw error;
+    }
+  });
+}
+
 // Lazy load all pages for code splitting
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const KitchenPage = lazy(() => import('./pages/kitchen/KitchenPage'));
-const PlanPage = lazy(() => import('./pages/plan/PlanPage'));
-const RecipeListPage = lazy(() => import('./pages/recipes/RecipeListPage'));
-const RecipeDetailPage = lazy(() => import('./pages/recipes/RecipeDetailPage'));
-const RecipeFormPage = lazy(() => import('./pages/recipes/RecipeFormPage'));
-const ShoppingListPage = lazy(() => import('./pages/shopping/ShoppingListPage'));
-const CookPage = lazy(() => import('./pages/cooking/CookPage'));
-const TimerDemoPage = lazy(() => import('./pages/cooking/TimerDemoPage'));
-const FamilyManagementPage = lazy(() => import('./pages/families/FamilyManagementPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const NotFoundPage = lazy(() => import('./pages/NotFound'));
+const LoginPage = lazyPage(() => import('./pages/LoginPage'));
+const RegisterPage = lazyPage(() => import('./pages/RegisterPage'));
+const KitchenPage = lazyPage(() => import('./pages/kitchen/KitchenPage'));
+const PlanPage = lazyPage(() => import('./pages/plan/PlanPage'));
+const RecipeListPage = lazyPage(() => import('./pages/recipes/RecipeListPage'));
+const RecipeDetailPage = lazyPage(() => import('./pages/recipes/RecipeDetailPage'));
+const RecipeFormPage = lazyPage(() => import('./pages/recipes/RecipeFormPage'));
+const ShoppingListPage = lazyPage(() => import('./pages/shopping/ShoppingListPage'));
+const CookPage = lazyPage(() => import('./pages/cooking/CookPage'));
+const TvPage = lazyPage(() => import('./pages/tv/TvPage'));
+const TimerDemoPage = lazyPage(() => import('./pages/cooking/TimerDemoPage'));
+const FamilyManagementPage = lazyPage(() => import('./pages/families/FamilyManagementPage'));
+const ProfilePage = lazyPage(() => import('./pages/ProfilePage'));
+const NotFoundPage = lazyPage(() => import('./pages/NotFound'));
 
 // Loading component
 const PageLoader = () => (
@@ -98,6 +124,14 @@ export const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <ShoppingListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tv"
+        element={
+          <ProtectedRoute>
+            <TvPage />
           </ProtectedRoute>
         }
       />

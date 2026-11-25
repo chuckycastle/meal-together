@@ -6,8 +6,10 @@
  * Design tokens
  * The look follows a laminated schedule sheet drawn with markers:
  * a white sheet, orange ruled lines, blue-black ink, one marker color per dish.
+ * `.light` and `.dark` on any element set the theme for that subtree.
  */
-:root {
+:root,
+.light {
   --counter: #edf0f2;
   --paper: #ffffff;
   --paper-2: #f6f8f9;
