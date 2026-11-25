@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:cloudflare": "tsc -b && VITE_API_URL= VITE_WS_URL= VITE_SUPABASE_URL= VITE_SUPABASE_ANON_KEY= VITE_FEATURE_SUPABASE_AUTH=false VITE_FEATURE_SUPABASE_TIMERS=false VITE_FEATURE_SUPABASE_SHOPPING=false VITE_FEATURE_DISABLE_SOCKETIO=false VITE_FEATURE_RECIPE_AI_IMPORT=false VITE_FEATURE_DEBUG_MODE=false vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",

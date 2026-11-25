@@ -1,397 +1,115 @@
 # MealTogether Deployment Guide
 
-This guide covers deploying the MealTogether application to production.
+Production runs on Cloudflare: one Worker serves the built frontend and the JSON API, with a D1 database.
 
-## Quick Deployment
+- **URL**: https://mealtogether.chuckycastle.io
+- **Worker**: `mealtogether` (source in `worker/`)
+- **Database**: D1 `mealtogether` (schema in `worker/migrations/`)
+- **Static files**: `frontend/dist`, served by the Worker's assets binding
+- **Secret**: `JWT_SECRET` (signs access and refresh tokens)
 
-For quick updates after initial server setup:
+The Flask app in `backend/` is not deployed. It remains for local reference and holds the recipe seed data (`backend/family_recipes.py`).
 
-```bash
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
-  'cd /opt/applications/meal-together && \
-   git pull && \
-   cd frontend && \
-   npm run build && \
-   sudo systemctl reload nginx'
-```
-
-This command:
-1. Connects to production server via SSH
-2. Pulls latest code from GitHub
-3. Builds the frontend production bundle
-4. Reloads nginx to serve the new build
-
-## Production Infrastructure
-
-- **Server**: AWS Lightsail instance
-- **IP Address**: 44.211.71.114
-- **Domain**: mealtogether.chuckycastle.io
-- **SSL**: Let's Encrypt (auto-renewed)
-- **Web Server**: Nginx with WebSocket support
-- **Backend**: Flask app running as systemd service
-- **Database**: PostgreSQL
-- **SSH Key**: ~/.ssh/LightsailDefaultKey-us-east-1.pem
-
-## Initial Server Setup vs. Quick Deployment
-
-### Initial Setup (One-time)
-
-Use the `deploy.sh` script for first-time server setup:
+## Deploy
 
 ```bash
-./deploy.sh
+cd worker
+npm install
+unset CLOUDFLARE_API_TOKEN   # use the `wrangler login` session; see Authentication
+npm run deploy
 ```
 
-This script:
-- Creates application directories
-- Deploys backend and frontend code via rsync
-- Sets up Python virtual environment
-- Creates PostgreSQL database
-- Installs systemd service (mealtogether.service)
-- Configures nginx with SSL
-- Sets up production secrets
+`npm run deploy` type-checks the Worker, runs its tests, builds the frontend with `npm run build:cloudflare`, and runs `wrangler deploy`.
 
-**Note**: Only run this for initial deployment or complete server rebuild.
+`build:cloudflare` sets the API base to the same origin and turns off the Supabase and recipe-import feature flags, so values in `frontend/.env.local` do not reach the production bundle.
 
-### Quick Deployment (Regular Updates)
+## Authentication
 
-Use the SSH command above for regular code updates. This assumes:
-- Server already configured via deploy.sh
-- Systemd service installed and running
-- Nginx configured
-- Database created and migrated
+Wrangler needs `workers (write)` and `d1 (write)`. The saved `wrangler login` session has both. A `CLOUDFLARE_API_TOKEN` in the shell environment takes precedence over that session; if the token lacks those permissions, commands fail with `Authentication error [code: 10000]`. Unset the variable for the command.
 
-## Deployment Workflow
+## Database migrations
 
-### 1. Pre-Deployment
-
-Before deploying:
+Add a numbered SQL file to `worker/migrations/`, then:
 
 ```bash
-# Ensure working directory is clean
-git status
-
-# Ensure frontend builds locally
-cd frontend && npm run build
-
-# Run tests if applicable
-npm test
+cd worker
+npm run migrate:local    # local D1 used by `wrangler dev`
+npm run migrate:remote   # production
 ```
 
-### 2. Commit and Push
+Apply the migration before deploying code that depends on it.
+
+## Secrets
 
 ```bash
-git add .
-git commit -m "Description of changes"
-git push origin main
+cd worker
+openssl rand -hex 48 | wrangler secret put JWT_SECRET
 ```
 
-### 3. Deploy to Production
+Changing `JWT_SECRET` signs every user out. For local development, put `JWT_SECRET=<any value>` in `worker/.dev.vars` (not committed).
 
-Run the quick deployment command (see Quick Deployment section above).
+## Load the family recipes
 
-### 4. Post-Deployment Verification
-
-After deployment:
-
-1. **Check nginx reload succeeded** - Command should complete without errors
-2. **Verify site loads**: Visit https://mealtogether.chuckycastle.io
-3. **Test critical features**:
-   - Login
-   - Create/view recipes
-   - Shopping list updates
-   - WebSocket real-time features
-4. **Check backend service**: `ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 'sudo systemctl status mealtogether'`
-
-## Environment Variables
-
-### Backend (.env on server)
-
-Located at: `/opt/applications/meal-together/backend/.env`
-
-Required variables:
-```bash
-FLASK_APP=app.py
-FLASK_ENV=production
-SECRET_KEY=<random-secret>
-DATABASE_URL=postgresql://localhost/meal_together_prod
-JWT_SECRET_KEY=<random-secret>
-JWT_ACCESS_TOKEN_EXPIRES=3600
-JWT_REFRESH_TOKEN_EXPIRES=2592000
-FRONTEND_URL=https://mealtogether.chuckycastle.io
-PORT=5000
-```
-
-### Frontend (.env.production)
-
-Located at: `/Users/chuckycastle/git/meal-together/frontend/.env.production`
+After an account exists and has a family:
 
 ```bash
-VITE_API_URL=https://mealtogether.chuckycastle.io
-VITE_WS_URL=https://mealtogether.chuckycastle.io
+cd worker
+python3 scripts/make_seed_sql.py --email you@example.com --timezone America/Los_Angeles > /tmp/seed.sql
+wrangler d1 execute mealtogether --remote --file /tmp/seed.sql
 ```
 
-**Security Note**: Never commit actual secrets to git. Use `.env.example` files for templates.
+The script adds eight holiday recipes and the Thanksgiving 2026 schedule to the family that the account belongs to. It adds only missing rows.
 
-## Service Management
-
-### Systemd Service
-
-The backend runs as a systemd service: `mealtogether.service`
-
-**Check service status**:
-```bash
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
-  'sudo systemctl status mealtogether'
-```
-
-**Restart service** (if backend code changed):
-```bash
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
-  'sudo systemctl restart mealtogether'
-```
-
-**View service logs**:
-```bash
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
-  'sudo journalctl -u mealtogether -f'
-```
-
-### Nginx
-
-**Reload nginx** (after frontend changes):
-```bash
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
-  'sudo systemctl reload nginx'
-```
-
-**Check nginx status**:
-```bash
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
-  'sudo systemctl status nginx'
-```
-
-**View nginx error logs**:
-```bash
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114 \
-  'sudo tail -f /var/log/nginx/error.log'
-```
-
-## Database Migrations
-
-When database schema changes are needed:
+## Local development
 
 ```bash
-# Connect to server
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114
-
-# Navigate to backend
-cd /opt/applications/meal-together/backend
-
-# Activate virtual environment
-source venv/bin/activate
-
-# Run migrations
-flask db upgrade
-
-# Exit
-exit
+cd frontend && npm run build:cloudflare
+cd ../worker
+npm run migrate:local
+wrangler dev --port 8787          # http://localhost:8787
+python3 scripts/smoke_test.py --base http://localhost:8787
 ```
 
-**Important**: Always test migrations locally before running in production.
+`scripts/smoke_test.py` creates throwaway accounts and exercises every route. It refuses to run against a non-local address.
 
-## Troubleshooting
-
-### Frontend Not Updating
-
-**Symptom**: Changes not visible after deployment
-
-**Solutions**:
-1. Hard refresh browser (Cmd+Shift+R or Ctrl+Shift+F5)
-2. Check build completed successfully in deployment output
-3. Verify nginx reloaded: `sudo systemctl status nginx`
-4. Check nginx serves correct files: `ls -la /opt/applications/meal-together/frontend/dist/`
-
-### Backend Service Not Running
-
-**Symptom**: 502 Bad Gateway or API errors
-
-**Solutions**:
-1. Check service status: `sudo systemctl status mealtogether`
-2. View service logs: `sudo journalctl -u mealtogether -n 50`
-3. Restart service: `sudo systemctl restart mealtogether`
-4. Check database connection
-5. Verify environment variables in `/opt/applications/meal-together/backend/.env`
-
-### Database Connection Issues
-
-**Symptom**: Backend fails with database errors
-
-**Solutions**:
-1. Check PostgreSQL status: `sudo systemctl status postgresql`
-2. Verify DATABASE_URL in backend .env
-3. Test database connection: `psql -d meal_together_prod`
-4. Check database exists: `sudo -u postgres psql -l`
-
-### WebSocket Not Working
-
-**Symptom**: Real-time features not updating
-
-**Solutions**:
-1. Verify nginx WebSocket proxy configuration
-2. Check backend Socket.IO logs
-3. Test WebSocket connection in browser DevTools
-4. Ensure FRONTEND_URL matches actual domain
-
-### SSL Certificate Issues
-
-**Symptom**: HTTPS not working or certificate expired
-
-**Solutions**:
-1. Check certbot status: `sudo certbot certificates`
-2. Renew certificate: `sudo certbot renew`
-3. Reload nginx: `sudo systemctl reload nginx`
-
-## Rollback Procedures
-
-If deployment causes critical issues:
-
-### 1. Quick Frontend Rollback
+## Verify a deployment
 
 ```bash
-# SSH into server
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114
-
-# Navigate to repo
-cd /opt/applications/meal-together
-
-# Check git log for last good commit
-git log --oneline -10
-
-# Rollback to previous commit
-git checkout <previous-commit-hash>
-
-# Rebuild frontend
-cd frontend && npm run build
-
-# Reload nginx
-sudo systemctl reload nginx
+curl -s https://mealtogether.chuckycastle.io/api/health        # {"status":"healthy"}
+curl -s -o /dev/null -w '%{http_code}\n' https://mealtogether.chuckycastle.io/api/families   # 401
 ```
 
-### 2. Backend Rollback
+Then sign in and check the Kitchen, Plan, Recipes, and Shopping pages.
+
+## Logs
 
 ```bash
-# SSH into server
-ssh -i ~/.ssh/LightsailDefaultKey-us-east-1.pem ubuntu@44.211.71.114
-
-# Navigate to repo
-cd /opt/applications/meal-together
-
-# Rollback code
-git checkout <previous-commit-hash>
-
-# Restart service
-sudo systemctl restart mealtogether
+cd worker
+wrangler tail
 ```
 
-### 3. Database Rollback
+Observability is enabled in `wrangler.jsonc`; logs also appear in the Cloudflare dashboard under the Worker.
 
-If migration caused issues:
+## Rollback
 
 ```bash
-# Downgrade migration
-cd /opt/applications/meal-together/backend
-source venv/bin/activate
-flask db downgrade
+cd worker
+wrangler deployments list
+wrangler rollback <version-id>
 ```
 
-**Warning**: Database rollbacks can cause data loss. Always backup before migrations.
-
-## Security Best Practices
-
-### SSH Key Management
-
-- **Keep private key secure**: Never commit ~/.ssh/LightsailDefaultKey-us-east-1.pem to git
-- **Backup key**: Store encrypted backup in secure location
-- **Key permissions**: Ensure key has 600 permissions (`chmod 600 ~/.ssh/LightsailDefaultKey-us-east-1.pem`)
-
-### Secret Management
-
-- **Never commit secrets**: Use .env files excluded from git
-- **Rotate secrets regularly**: Update JWT_SECRET_KEY and SECRET_KEY periodically
-- **Database credentials**: Use strong passwords, limit access
-- **Environment-specific secrets**: Different secrets for dev/staging/production
-
-### Server Access
-
-- **Disable password authentication**: Use SSH keys only
-- **Firewall rules**: Only allow necessary ports (22, 80, 443)
-- **Keep system updated**: Regular security patches
-- **Monitor logs**: Watch for suspicious activity
-
-## Monitoring and Health Checks
-
-### Application Monitoring
-
-Check application health:
+A rollback restores Worker code and static files. It does not undo D1 migrations. D1 Time Travel restores the database to an earlier point within the retention window of the plan:
 
 ```bash
-# Backend health check
-curl https://mealtogether.chuckycastle.io/api/health
-
-# Frontend loads
-curl -I https://mealtogether.chuckycastle.io
+wrangler d1 time-travel restore mealtogether --timestamp <unix-seconds>
 ```
 
-### Resource Monitoring
+## Not available on Cloudflare
 
-On server:
+- Recipe import from a link (`POST /recipes/import` returns 501). The Flask implementation depends on an LLM service and server-side fetches.
+- Cooking session routes. The timer board (`/api/families/{id}/timers`) replaces them.
+- Socket.IO events. Pages poll: timers every 5 seconds, shopping every 10, the meal sheet every 15.
 
-```bash
-# Disk usage
-df -h
+## Previous hosting
 
-# Memory usage
-free -h
-
-# CPU usage
-top
-
-# Service status
-sudo systemctl status mealtogether nginx postgresql
-```
-
-### Log Monitoring
-
-Regular log review:
-
-```bash
-# Application logs
-sudo journalctl -u mealtogether --since "1 hour ago"
-
-# Nginx access logs
-sudo tail -f /var/log/nginx/access.log
-
-# Nginx error logs
-sudo tail -f /var/log/nginx/error.log
-
-# PostgreSQL logs
-sudo tail -f /var/log/postgresql/postgresql-*.log
-```
-
-## Additional Resources
-
-- **Project README**: `/README.md` - Project overview and local development
-- **CLAUDE.md**: `/CLAUDE.md` - Development instructions
-- **Deployment Checklist**: `/DEPLOYMENT_CHECKLIST.md` - Quick reference checklist
-- **Deploy Script**: `/deploy.sh` - Initial server setup script
-
-## Support and Troubleshooting
-
-If issues persist after following this guide:
-
-1. Check application logs for error messages
-2. Review recent commits for potential issues
-3. Test locally to isolate server vs. code issues
-4. Consider rollback if critical functionality broken
-5. Document issue and resolution for future reference
+Until 2026 the app ran on an AWS Lightsail instance (nginx, Flask under systemd, PostgreSQL). That server is no longer reachable. `deploy.sh` and `backend/*.service` describe that setup and are not used.
