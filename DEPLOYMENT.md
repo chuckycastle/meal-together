@@ -81,6 +81,12 @@ curl -s -o /dev/null -w '%{http_code}\n' https://mealtogether.chuckycastle.io/ap
 
 Then sign in and check the Kitchen, Plan, Recipes, and Shopping pages.
 
+## Security headers
+
+The Worker serves every page and sets its headers in `worker/src/pages.ts`. Each HTML response carries a new nonce in `Content-Security-Policy` and is sent with `Cache-Control: no-store`, so a cached page is never paired with a different nonce. Cloudflare reads the nonce from that header and adds it to the bot-detection script it injects into pages; without it the browser blocks that script and logs a console error.
+
+Hashed files under `/assets` skip the Worker. Their headers come from `frontend/public/_headers`.
+
 ## Logs
 
 ```bash
