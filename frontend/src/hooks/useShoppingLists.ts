@@ -19,6 +19,8 @@ export const useShoppingList = (familyId: number | undefined, listId: number | u
     queryKey: ['shoppingLists', familyId, listId],
     queryFn: () => apiClient.getShoppingList(familyId!, listId!),
     enabled: !!familyId && !!listId,
+    // Others add and check items while someone is at the store
+    refetchInterval: 10000,
   });
 };
 

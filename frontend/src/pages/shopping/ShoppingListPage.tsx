@@ -1,267 +1,299 @@
 /**
- * ShoppingListPage Component
- * Collaborative shopping list with real-time updates
+ * ShoppingListPage
+ * One shared list, grouped by store section. Tap an item when it is in
+ * the cart; it moves to the bottom.
  */
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { Plus, X } from 'lucide-react';
+import { Layout } from '../../components/layout';
+import { BlankSlate, Notice, PageHeader, Spinner, Tick } from '../../components/kit';
 import { useFamily } from '../../contexts/FamilyContext';
 import {
-  useShoppingLists,
-  useShoppingList,
-  useCreateShoppingList,
   useAddItem,
-  useUpdateItem,
+  useCreateShoppingList,
   useDeleteItem,
+  useShoppingList,
+  useShoppingLists,
+  useUpdateItem,
 } from '../../hooks/useShoppingLists';
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { EmptyState } from '../../components/ui/EmptyState';
-import { ShoppingItemForm, CategorySection } from '../../components/shopping';
-import { Layout } from '../../components/layout/Layout';
-import type { ShoppingListItem, ShoppingItemFormData } from '../../types';
+import { apiClient } from '../../services/api';
+import type { ShoppingList, ShoppingListItem } from '../../types';
+
+/** Store sections in the order most shops are walked */
+const SECTIONS = ['Produce', 'Meat', 'Dairy & eggs', 'Bakery', 'Baking', 'Spices', 'Pantry', 'Frozen', 'Other'];
+
+function sectionOf(item: ShoppingListItem): string {
+  return item.category?.trim() || 'Other';
+}
+
+function groupBySection(items: ShoppingListItem[]): Array<[string, ShoppingListItem[]]> {
+  const groups = new Map<string, ShoppingListItem[]>();
+  for (const item of items) {
+    const section = sectionOf(item);
+    groups.set(section, [...(groups.get(section) ?? []), item]);
+  }
+  const rank = (section: string) => {
+    const index = SECTIONS.indexOf(section);
+    return index === -1 ? SECTIONS.length - 1.5 : index;
+  };
+  return [...groups.entries()].sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b));
+}
+
+interface ItemRowProps {
+  item: ShoppingListItem;
+  onToggle: (item: ShoppingListItem) => void;
+  onDelete: (item: ShoppingListItem) => void;
+}
+
+const ItemRow = ({ item, onToggle, onDelete }: ItemRowProps) => (
+  <li className="flex items-start gap-3 px-3 py-2.5 sm:px-4">
+    <Tick checked={item.checked} onChange={() => onToggle(item)} label={`${item.name} in the cart`} className="mt-0.5" />
+    <button type="button" className="min-w-0 flex-1 text-left leading-snug" onClick={() => onToggle(item)} tabIndex={-1}>
+      <span className={`text-lg font-semibold ${item.checked ? 'struck' : ''}`}>{item.name}</span>
+      {(item.quantity || item.notes) && (
+        <span className={`block text-[0.95rem] text-ink-2 ${item.checked ? 'opacity-60' : ''}`}>
+          {[item.quantity, item.notes].filter(Boolean).join(' / ')}
+        </span>
+      )}
+    </button>
+    <button
+      type="button"
+      className="btn btn-quiet btn-icon btn-sm"
+      onClick={() => onDelete(item)}
+      aria-label={`Remove ${item.name}`}
+    >
+      <X size={16} aria-hidden="true" />
+    </button>
+  </li>
+);
 
 export const ShoppingListPage = () => {
-  const { activeFamily } = useFamily();
-  const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
+  const { activeFamily, isLoading: familyLoading } = useFamily();
+  const familyId = activeFamily?.id;
+  const queryClient = useQueryClient();
 
-  // Get active shopping lists
-  const { data: shoppingLists = [], isLoading: isLoadingLists } = useShoppingLists(
-    activeFamily?.id,
-    true
-  );
+  const { data: lists = [], isLoading: listsLoading, isError: listsError } = useShoppingLists(familyId, true);
+  const activeList = lists[0];
+  const { data: detail, isLoading: detailLoading } = useShoppingList(familyId, activeList?.id);
+  const list = detail ?? activeList;
 
-  // Use the first active list (or create one if needed)
-  const activeList = shoppingLists[0];
+  const createList = useCreateShoppingList(familyId ?? 0);
+  const addItem = useAddItem(familyId ?? 0, activeList?.id ?? 0);
+  const updateItem = useUpdateItem(familyId ?? 0, activeList?.id ?? 0);
+  const deleteItem = useDeleteItem(familyId ?? 0, activeList?.id ?? 0);
 
-  // Get full shopping list with items
-  const {
-    data: shoppingList,
-    isLoading: isLoadingItems,
-    refetch,
-  } = useShoppingList(activeFamily?.id, activeList?.id);
+  const [name, setName] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [section, setSection] = useState('Other');
+  const [problem, setProblem] = useState('');
+  const [adding, setAdding] = useState(false);
 
-  // Mutations
-  const createShoppingList = useCreateShoppingList(activeFamily?.id || 0);
-  const addItem = useAddItem(activeFamily?.id || 0, activeList?.id || 0);
-  const updateItem = useUpdateItem(activeFamily?.id || 0, activeList?.id || 0);
-  const deleteItem = useDeleteItem(activeFamily?.id || 0, activeList?.id || 0);
+  const items = useMemo(() => list?.items ?? [], [list]);
+  const toBuy = useMemo(() => groupBySection(items.filter((item) => !item.checked)), [items]);
+  const inCart = useMemo(() => items.filter((item) => item.checked), [items]);
 
-  // Compute shopping list state (MUST be before early returns to maintain hook order)
-  const items = shoppingList?.items || [];
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['shoppingLists', familyId] });
 
-  // Group items by category
-  const itemsByCategory = useMemo(() =>
-    items.reduce((acc, item) => {
-      const category = item.category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(item);
-      return acc;
-    }, {} as Record<string, ShoppingListItem[]>),
-    [items]
-  );
+  const handleAdd = async (event: FormEvent) => {
+    event.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed || !familyId || !activeFamily) return;
 
-  const categories = useMemo(() => Object.keys(itemsByCategory).sort(), [itemsByCategory]);
-  const completedCount = useMemo(() => items.filter((item) => item.checked).length, [items]);
-  const totalCount = items.length;
-  const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
-  const handleCreateShoppingList = async () => {
-    if (!activeFamily) return;
-
-    await createShoppingList.mutateAsync({
-      name: `${activeFamily.name} Shopping List`,
-    });
-  };
-
-  const handleAddItem = async (data: ShoppingItemFormData) => {
-    await addItem.mutateAsync(data);
-  };
-
-  const handleToggleItem = async (itemId: number, checked: boolean) => {
-    // Get current item to include version for optimistic locking
-    const currentItem = shoppingList?.items?.find(item => item.id === itemId);
-    if (!currentItem) {
-      console.error('Item not found:', itemId);
-      return;
-    }
-
-    setUpdatingItems((prev) => new Set(prev).add(itemId));
+    setAdding(true);
+    setProblem('');
     try {
-      await updateItem.mutateAsync({
-        itemId,
-        data: {
-          checked,
-          version: currentItem.version // Include version for optimistic locking
-        }
-      });
-    } catch (error: any) {
-      // Handle 409 Conflict - item was modified by another user
-      if (error?.response?.status === 409) {
-        alert('This item was just modified by another user. Refreshing...');
-        refetch(); // Refetch to get latest data
+      const data = { name: trimmed, quantity: quantity.trim() || undefined, category: section };
+      if (activeList) {
+        await addItem.mutateAsync(data);
       } else {
-        console.error('Error updating item:', error);
+        // The first item creates the list
+        const created = await createList.mutateAsync({ name: `${activeFamily.name} shopping` });
+        await apiClient.addShoppingItem(familyId, created.id, data);
       }
+      await refresh();
+      setName('');
+      setQuantity('');
+    } catch {
+      setProblem('The item was not added. Check your connection and try again.');
     } finally {
-      setUpdatingItems((prev) => {
-        const next = new Set(prev);
-        next.delete(itemId);
-        return next;
-      });
+      setAdding(false);
     }
   };
 
-  const handleDeleteItem = async (itemId: number) => {
-    await deleteItem.mutateAsync(itemId);
+  const handleToggle = async (item: ShoppingListItem) => {
+    if (!activeList) return;
+    const key = ['shoppingLists', familyId, activeList.id];
+    const previous = queryClient.getQueryData<ShoppingList>(key);
+    // Move the item at once; the server copy follows
+    queryClient.setQueryData<ShoppingList>(key, (current) =>
+      current
+        ? {
+            ...current,
+            items: current.items?.map((candidate) =>
+              candidate.id === item.id ? { ...candidate, checked: !item.checked } : candidate
+            ),
+          }
+        : current
+    );
+    setProblem('');
+    try {
+      await updateItem.mutateAsync({ itemId: item.id, data: { checked: !item.checked, version: item.version } });
+    } catch (error) {
+      queryClient.setQueryData(key, previous);
+      const status = (error as { status?: number })?.status;
+      setProblem(
+        status === 409
+          ? `Someone else just changed ${item.name}. The list is now up to date.`
+          : 'The change was not saved. Check your connection.'
+      );
+      await refresh();
+    }
   };
 
-  const handleClearCompleted = async () => {
-    if (!shoppingList?.items) return;
+  const handleDelete = async (item: ShoppingListItem) => {
+    setProblem('');
+    try {
+      await deleteItem.mutateAsync(item.id);
+    } catch {
+      setProblem(`${item.name} was not removed. Try again.`);
+    }
+  };
 
-    const completedItems = shoppingList.items.filter((item) => item.checked);
-    if (completedItems.length === 0) {
-      alert('No completed items to clear');
+  const handleClearCart = async () => {
+    if (!window.confirm(`Remove ${inCart.length} picked-up ${inCart.length === 1 ? 'item' : 'items'} from the list?`)) {
       return;
     }
-
-    if (!window.confirm(`Remove ${completedItems.length} completed item(s)?`)) {
-      return;
+    setProblem('');
+    try {
+      for (const item of inCart) {
+        await deleteItem.mutateAsync(item.id);
+      }
+    } catch {
+      setProblem('Some items were not removed. Try again.');
     }
-
-    await Promise.all(
-      completedItems.map((item) => deleteItem.mutateAsync(item.id))
-    );
   };
 
-  if (!activeFamily) {
-    return (
-      <Layout>
-        <div className="p-6">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-800">
-              Please select a family to view shopping list
-            </p>
-          </div>
-        </div>
-      </Layout>
+  let content;
+  if (familyLoading || listsLoading || (activeList && detailLoading && !list)) {
+    content = <Spinner />;
+  } else if (!activeFamily) {
+    content = (
+      <BlankSlate
+        title="The shopping list belongs to a family"
+        action={
+          <Link to="/" className="btn btn-primary">
+            Set up your family
+          </Link>
+        }
+      />
     );
-  }
-
-  if (isLoadingLists || isLoadingItems) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-screen">
-          <LoadingSpinner />
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!activeList) {
-    return (
-      <Layout>
-        <div className="p-6">
-          <EmptyState
-            title="No shopping list"
-            description="Create a shopping list to get started"
-            action={{
-              label: 'Create Shopping List',
-              onClick: handleCreateShoppingList,
-            }}
+  } else if (listsError) {
+    content = <Notice>The shopping list did not load. Check your connection and reload the page.</Notice>;
+  } else {
+    content = (
+      <>
+        <form onSubmit={handleAdd} className="surface mb-6 grid gap-2 p-3 sm:grid-cols-[minmax(0,1fr)_9rem_10rem_auto]">
+          <input
+            className="field"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Add an item"
+            aria-label="Item"
+            maxLength={255}
           />
-        </div>
-      </Layout>
+          <input
+            className="field"
+            value={quantity}
+            onChange={(event) => setQuantity(event.target.value)}
+            placeholder="How much"
+            aria-label="How much"
+            maxLength={50}
+          />
+          <select className="field" value={section} onChange={(event) => setSection(event.target.value)} aria-label="Store section">
+            {SECTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="btn btn-primary" disabled={adding || !name.trim()}>
+            <Plus size={18} aria-hidden="true" />
+            Add
+          </button>
+        </form>
+
+        {problem && (
+          <div className="mb-4">
+            <Notice>{problem}</Notice>
+          </div>
+        )}
+
+        {items.length === 0 ? (
+          <BlankSlate
+            title="Nothing to buy"
+            action={
+              <Link to="/plan" className="btn btn-outline">
+                Open the plan
+              </Link>
+            }
+          >
+            Add items above, or open a meal and add its ingredients in one step.
+          </BlankSlate>
+        ) : (
+          <div className="space-y-6">
+            {toBuy.map(([sectionName, sectionItems]) => (
+              <section key={sectionName} aria-label={sectionName}>
+                <h2 className="marker mb-2 flex items-baseline gap-2 text-xl">
+                  {sectionName}
+                  <span className="font-sans text-sm font-semibold text-ink-3">{sectionItems.length}</span>
+                </h2>
+                <ul className="surface divide-y divide-line">
+                  {sectionItems.map((item) => (
+                    <ItemRow key={item.id} item={item} onToggle={handleToggle} onDelete={handleDelete} />
+                  ))}
+                </ul>
+              </section>
+            ))}
+
+            {toBuy.length === 0 && (
+              <p className="marker py-4 text-center text-2xl">Everything is in the cart.</p>
+            )}
+
+            {inCart.length > 0 && (
+              <section aria-label="In the cart">
+                <div className="mb-2 flex items-baseline justify-between gap-4">
+                  <h2 className="marker flex items-baseline gap-2 text-xl text-ink-2">
+                    In the cart
+                    <span className="font-sans text-sm font-semibold text-ink-3">{inCart.length}</span>
+                  </h2>
+                  <button type="button" className="btn btn-quiet btn-sm" onClick={handleClearCart}>
+                    Remove picked-up items
+                  </button>
+                </div>
+                <ul className="divide-y divide-line rounded-surface border border-line">
+                  {inCart.map((item) => (
+                    <ItemRow key={item.id} item={item} onToggle={handleToggle} onDelete={handleDelete} />
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+        )}
+      </>
     );
   }
 
   return (
     <Layout>
-      <div className="p-6 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Shopping List</h1>
-              <p className="text-gray-800 dark:text-gray-300 mt-1">{activeFamily.name}</p>
-            </div>
-        </div>
-
-        {/* Progress Bar */}
-        {totalCount > 0 && (
-          <div className="mb-4">
-            <div className="flex items-center justify-between text-sm text-gray-800 dark:text-gray-300 mb-2">
-              <span>
-                {completedCount} of {totalCount} items completed
-              </span>
-              <span>{Math.round(progressPercentage)}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Actions */}
-        {completedCount > 0 && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleClearCompleted}
-              className="text-sm text-red-600 hover:text-red-700 font-medium"
-            >
-              Clear Completed ({completedCount})
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Add Item Form */}
-      <div className="mb-6">
-        <ShoppingItemForm
-          onAdd={handleAddItem}
-          isAdding={addItem.isPending}
-        />
-      </div>
-
-      {/* Shopping Items */}
-      {items.length === 0 ? (
-        <EmptyState
-          title="No items yet"
-          description="Add items to your shopping list to get started"
-        />
-      ) : (
-        <div>
-          {categories.map((category) => (
-            <CategorySection
-              key={category}
-              category={category}
-              items={itemsByCategory[category]}
-              onToggle={handleToggleItem}
-              onDelete={handleDeleteItem}
-              updatingItems={updatingItems}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Info Box */}
-      {items.length > 0 && (
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex gap-3">
-            <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Real-time collaboration active</p>
-              <p>Changes made by other family members will appear automatically.</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <PageHeader
+        title="Shopping"
+        description={items.length > 0 ? `${inCart.length} of ${items.length} picked up` : undefined}
+      />
+      {content}
     </Layout>
   );
 };

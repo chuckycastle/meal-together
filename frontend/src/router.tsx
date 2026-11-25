@@ -3,19 +3,19 @@
  */
 
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Lazy load all pages for code splitting
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const KitchenPage = lazy(() => import('./pages/kitchen/KitchenPage'));
+const PlanPage = lazy(() => import('./pages/plan/PlanPage'));
 const RecipeListPage = lazy(() => import('./pages/recipes/RecipeListPage'));
 const RecipeDetailPage = lazy(() => import('./pages/recipes/RecipeDetailPage'));
 const RecipeFormPage = lazy(() => import('./pages/recipes/RecipeFormPage'));
 const ShoppingListPage = lazy(() => import('./pages/shopping/ShoppingListPage'));
-const TimelineSchedulerPage = lazy(() => import('./pages/timeline/TimelineSchedulerPage'));
-const CookingSessionPage = lazy(() => import('./pages/cooking/CookingSessionPage'));
+const CookPage = lazy(() => import('./pages/cooking/CookPage'));
 const TimerDemoPage = lazy(() => import('./pages/cooking/TimerDemoPage'));
 const FamilyManagementPage = lazy(() => import('./pages/families/FamilyManagementPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
@@ -23,8 +23,8 @@ const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
 // Loading component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  <div className="flex min-h-screen items-center justify-center" role="status" aria-label="Loading">
+    <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-line border-t-ink"></div>
   </div>
 );
 
@@ -41,7 +41,15 @@ export const AppRoutes = () => {
         path="/"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <KitchenPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/plan"
+        element={
+          <ProtectedRoute>
+            <PlanPage />
           </ProtectedRoute>
         }
       />
@@ -94,21 +102,16 @@ export const AppRoutes = () => {
         }
       />
       <Route
-        path="/timeline"
+        path="/cook/:recipeId"
         element={
           <ProtectedRoute>
-            <TimelineSchedulerPage />
+            <CookPage />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/cooking"
-        element={
-          <ProtectedRoute>
-            <CookingSessionPage />
-          </ProtectedRoute>
-        }
-      />
+      {/* The schedule and cooking screens moved into the plan */}
+      <Route path="/timeline" element={<Navigate to="/plan" replace />} />
+      <Route path="/cooking" element={<Navigate to="/" replace />} />
       <Route
         path="/timer-demo"
         element={

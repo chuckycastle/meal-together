@@ -2,4 +2,4 @@
  * Cooking Pages
  */
 
-export { CookingSessionPage } from './CookingSessionPage';
+export { CookPage } from './CookPage';

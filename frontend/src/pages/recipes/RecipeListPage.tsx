@@ -1,113 +1,117 @@
 /**
- * RecipeListPage Component
- * Browse and search family recipes
+ * RecipeListPage
+ * The family's recipes as an index: name, time, servings, where it came from
  */
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus, Search } from 'lucide-react';
+import { Layout } from '../../components/layout';
+import { BlankSlate, Notice, PageHeader, Spinner } from '../../components/kit';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useRecipes } from '../../hooks/useRecipes';
-import { RecipeList } from '../../components/recipes';
-import { Layout } from '../../components/layout/Layout';
+import { durationLabel } from '../../lib/time';
+import { sourceLabel } from '../../lib/recipes';
 
 export const RecipeListPage = () => {
-  const { activeFamily } = useFamily();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { activeFamily, isLoading: familyLoading } = useFamily();
+  const { data: recipes = [], isLoading, isError } = useRecipes(activeFamily?.id);
+  const [query, setQuery] = useState('');
 
-  // Fetch recipes for active family
-  const { data: recipes = [], isLoading, error } = useRecipes(
-    activeFamily?.id
-  );
+  const visible = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return recipes
+      .filter((recipe) => recipe.name.toLowerCase().includes(needle))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [recipes, query]);
 
-  // Filter recipes by search query
-  const filteredRecipes = useMemo(() =>
-    recipes.filter((recipe) =>
-      recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ),
-    [recipes, searchQuery]
-  );
-
-  if (!activeFamily) {
-    return (
-      <Layout>
-        <div className="p-6">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-800">
-              Please select a family to view recipes
-            </p>
-          </div>
+  let content;
+  if (familyLoading || isLoading) {
+    content = <Spinner />;
+  } else if (!activeFamily) {
+    content = (
+      <BlankSlate
+        title="Recipes belong to a family"
+        action={
+          <Link to="/" className="btn btn-primary">
+            Set up your family
+          </Link>
+        }
+      />
+    );
+  } else if (isError) {
+    content = <Notice>Recipes did not load. Check your connection and reload the page.</Notice>;
+  } else if (recipes.length === 0) {
+    content = (
+      <BlankSlate
+        title="No recipes yet"
+        action={
+          <Link to="/recipes/new" className="btn btn-primary">
+            <Plus size={18} aria-hidden="true" />
+            Add a recipe
+          </Link>
+        }
+      >
+        Paste a link to import one, or type it in. Recipes with timers can be cooked step by step.
+      </BlankSlate>
+    );
+  } else {
+    content = (
+      <>
+        <div className="relative mb-4">
+          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" aria-hidden="true" />
+          <input
+            type="search"
+            className="field pl-10"
+            placeholder="Find a recipe"
+            aria-label="Find a recipe"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
         </div>
-      </Layout>
+
+        {visible.length === 0 ? (
+          <p className="py-8 text-center text-ink-2">No recipe is named like "{query}".</p>
+        ) : (
+          <ul className="surface divide-y divide-line overflow-hidden">
+            {visible.map((recipe) => {
+              const source = sourceLabel(recipe.source_url);
+              return (
+                <li key={recipe.id}>
+                  <Link
+                    to={`/recipes/${recipe.id}`}
+                    className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-4 hover:bg-paper-2 sm:px-5"
+                  >
+                    <span className="marker min-w-0 flex-1 basis-56 text-xl sm:text-2xl">{recipe.name}</span>
+                    <span className="text-sm text-ink-2">
+                      {durationLabel(recipe.prep_time + recipe.cook_time)}, serves {recipe.servings}
+                      {source && <span className="hidden sm:inline">, from {source}</span>}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </>
     );
   }
 
   return (
     <Layout>
-      <div className="p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Recipes</h1>
-          <Link
-            to="/recipes/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Add Recipe
-          </Link>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search recipes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-          />
-          <svg
-            className="w-5 h-5 text-gray-800 dark:text-gray-300 absolute left-3 top-2.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-
-        {/* Results count */}
-        {searchQuery && (
-          <p className="mt-2 text-sm text-gray-800 dark:text-gray-300">
-            Found {filteredRecipes.length} recipe(s)
-          </p>
-        )}
-      </div>
-
-      {/* Recipe Grid */}
-      <RecipeList
-        recipes={filteredRecipes}
-        isLoading={isLoading}
-        error={error}
+      <PageHeader
+        title="Recipes"
+        description={recipes.length > 0 ? `${recipes.length} in the family binder` : undefined}
+        actions={
+          activeFamily && (
+            <Link to="/recipes/new" className="btn btn-primary">
+              <Plus size={18} aria-hidden="true" />
+              Add recipe
+            </Link>
+          )
+        }
       />
-    </div>
+      {content}
     </Layout>
   );
 };

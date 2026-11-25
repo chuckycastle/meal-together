@@ -25,6 +25,8 @@ class Family(BaseModel):
     recipes = db.relationship('Recipe', back_populates='family', cascade='all, delete-orphan')
     shopping_lists = db.relationship('ShoppingList', back_populates='family', cascade='all, delete-orphan')
     cooking_sessions = db.relationship('CookingSession', back_populates='family', cascade='all, delete-orphan')
+    meals = db.relationship('Meal', back_populates='family', cascade='all, delete-orphan')
+    timers = db.relationship('KitchenTimer', back_populates='family', cascade='all, delete-orphan')
 
     def get_member(self, user_id):
         """Get family member by user ID"""

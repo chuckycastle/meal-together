@@ -28,6 +28,14 @@ import type {
   StartTimerRequest,
   ActiveTimer,
   ApiError,
+  Meal,
+  MealItemInput,
+  CreateMealRequest,
+  UpdateMealRequest,
+  MealShoppingResult,
+  BoardTimerListResponse,
+  BoardTimerResponse,
+  CreateBoardTimerRequest,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -468,6 +476,104 @@ class ApiClient {
       `/api/families/${familyId}/cooking-sessions/${sessionId}/timers/${timerId}/cancel`
     );
     return response.data.timer;
+  }
+
+  // ============================================================================
+  // Meals
+  // ============================================================================
+
+  async getMeals(familyId: number): Promise<Meal[]> {
+    const response = await this.client.get<{ meals: Meal[] }>(`/api/families/${familyId}/meals`);
+    return response.data.meals;
+  }
+
+  async createMeal(familyId: number, data: CreateMealRequest): Promise<Meal> {
+    const response = await this.client.post<{ meal: Meal }>(`/api/families/${familyId}/meals`, data);
+    return response.data.meal;
+  }
+
+  async updateMeal(familyId: number, mealId: number, data: UpdateMealRequest): Promise<Meal> {
+    const response = await this.client.put<{ meal: Meal }>(
+      `/api/families/${familyId}/meals/${mealId}`,
+      data
+    );
+    return response.data.meal;
+  }
+
+  async deleteMeal(familyId: number, mealId: number): Promise<void> {
+    await this.client.delete(`/api/families/${familyId}/meals/${mealId}`);
+  }
+
+  async addMealItem(familyId: number, mealId: number, data: MealItemInput): Promise<Meal> {
+    const response = await this.client.post<{ meal: Meal }>(
+      `/api/families/${familyId}/meals/${mealId}/items`,
+      data
+    );
+    return response.data.meal;
+  }
+
+  async updateMealItem(
+    familyId: number,
+    mealId: number,
+    itemId: number,
+    data: MealItemInput
+  ): Promise<Meal> {
+    const response = await this.client.put<{ meal: Meal }>(
+      `/api/families/${familyId}/meals/${mealId}/items/${itemId}`,
+      data
+    );
+    return response.data.meal;
+  }
+
+  async deleteMealItem(familyId: number, mealId: number, itemId: number): Promise<Meal> {
+    const response = await this.client.delete<{ meal: Meal }>(
+      `/api/families/${familyId}/meals/${mealId}/items/${itemId}`
+    );
+    return response.data.meal;
+  }
+
+  async addMealToShoppingList(familyId: number, mealId: number): Promise<MealShoppingResult> {
+    const response = await this.client.post<MealShoppingResult>(
+      `/api/families/${familyId}/meals/${mealId}/shopping-list`
+    );
+    return response.data;
+  }
+
+  // ============================================================================
+  // Timer board
+  // ============================================================================
+
+  async getBoardTimers(familyId: number): Promise<BoardTimerListResponse> {
+    const response = await this.client.get<BoardTimerListResponse>(`/api/families/${familyId}/timers`);
+    return response.data;
+  }
+
+  async createBoardTimer(familyId: number, data: CreateBoardTimerRequest): Promise<BoardTimerResponse> {
+    const response = await this.client.post<BoardTimerResponse>(`/api/families/${familyId}/timers`, data);
+    return response.data;
+  }
+
+  async changeBoardTimer(
+    familyId: number,
+    timerId: number,
+    action: 'start' | 'pause' | 'reset'
+  ): Promise<BoardTimerResponse> {
+    const response = await this.client.post<BoardTimerResponse>(
+      `/api/families/${familyId}/timers/${timerId}/${action}`
+    );
+    return response.data;
+  }
+
+  async addBoardTimerTime(familyId: number, timerId: number, seconds: number): Promise<BoardTimerResponse> {
+    const response = await this.client.post<BoardTimerResponse>(
+      `/api/families/${familyId}/timers/${timerId}/add`,
+      { seconds }
+    );
+    return response.data;
+  }
+
+  async deleteBoardTimer(familyId: number, timerId: number): Promise<void> {
+    await this.client.delete(`/api/families/${familyId}/timers/${timerId}`);
   }
 }
 

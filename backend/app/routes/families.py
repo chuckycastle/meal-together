@@ -52,7 +52,7 @@ def create_family():
 @jwt_required()
 def get_families():
     """Get all families for current user"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
 
     # Get all family memberships with eager loading
     memberships = FamilyMember.query.options(
