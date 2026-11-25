@@ -8,6 +8,7 @@ not production:
 """
 import argparse
 import json
+import re
 import secrets
 import sys
 import urllib.error
@@ -55,10 +56,23 @@ def main():
     # Health and static files
     status, body, _ = call(base, 'GET', '/api/health')
     check('health', status == 200 and body.get('status') == 'healthy', body)
-    with urllib.request.urlopen(base + '/', timeout=20) as page:
-        html = page.read().decode()
-        check('index.html served', '<div id="root">' in html)
-        check('security headers on pages', page.headers.get('X-Frame-Options') == 'DENY', dict(page.headers))
+    policies = []
+    for _ in range(2):
+        with urllib.request.urlopen(base + '/', timeout=20) as page:
+            html = page.read().decode()
+            policies.append(page.headers.get('Content-Security-Policy') or '')
+            headers = page.headers
+    check('index.html served', '<div id="root">' in html)
+    check('security headers on pages', headers.get('X-Frame-Options') == 'DENY', dict(headers))
+    check('policy carries a nonce and no unsafe-inline scripts',
+          "script-src 'self' 'nonce-" in policies[0] and "script-src 'self' 'unsafe-inline'" not in policies[0], policies[0])
+    check('nonce changes on every response', policies[0] != policies[1], policies)
+    check('pages are not cached or revalidated', headers.get('Cache-Control') == 'no-store'
+          and not headers.get('ETag'), dict(headers))
+    asset = re.search(r'/assets/index-[^"]+\.js', html)
+    with urllib.request.urlopen(base + asset.group(0), timeout=20) as script:
+        check('hashed files are cached long-term', 'immutable' in (script.headers.get('Cache-Control') or ''),
+              dict(script.headers))
     with urllib.request.urlopen(base + '/plan', timeout=20) as page:
         check('client routes fall back to index.html', '<div id="root">' in page.read().decode())
 

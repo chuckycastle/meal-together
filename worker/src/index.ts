@@ -7,6 +7,7 @@ import { verifyToken } from './auth';
 import { first } from './db';
 import type { Env } from './db';
 import { HttpError, json, readJson } from './http';
+import { servePage } from './pages';
 import { routes } from './router';
 import type { Access, Ctx } from './router';
 import './routes/auth';
@@ -83,7 +84,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+    if (!url.pathname.startsWith('/api/')) return servePage(request, env.ASSETS);
 
     try {
       return await handleApi(request, env, url);
