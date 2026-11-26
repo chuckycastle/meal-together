@@ -128,6 +128,48 @@ def main():
         'email': f'outsider-{run}@example.test', 'password': password, 'first_name': 'Olga', 'last_name': 'Outsider'})
     outsider, outsider_id = body.get('access_token'), body['user']['id']
 
+    # Device sign-in: a TV shows a code, a signed-in person approves it
+    status, start, _ = call(base, 'POST', '/api/auth/device')
+    check('device sign-in starts', status == 201 and re.fullmatch(r'[A-Z2-9]{4}-[A-Z2-9]{4}', start.get('user_code', ''))
+          and start['verification_url_complete'].endswith('/link?code=' + start['user_code'])
+          and start['expires_in'] > 0 and start['interval'] > 0, start)
+    device_code = start['device_code']
+    status, body, _ = call(base, 'POST', '/api/auth/device/token', {'device_code': device_code})
+    check('device waits while the code is open', status == 200 and body == {'status': 'pending'}, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/approve', {'user_code': start['user_code']})
+    check('approving needs a signed-in person', status == 401, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/approve', {'user_code': 'ZZZZ-ZZZZ'}, token=owner)
+    check('unknown code rejected', status == 404, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/approve', {'user_code': 'nope'}, token=owner)
+    check('malformed code rejected', status == 404, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/approve',
+                           {'user_code': start['user_code'].lower().replace('-', ' ')}, token=owner)
+    check('code approved as typed', status == 200, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/approve', {'user_code': start['user_code']}, token=owner)
+    check('code cannot be approved twice', status == 404, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/token', {'device_code': device_code})
+    check('device receives tokens for the approver', status == 200 and body.get('status') == 'approved'
+          and body['user']['id'] == owner_id and 'password_hash' not in body['user'], body)
+    device_access, device_refresh = body.get('access_token'), body.get('refresh_token')
+    status, body, _ = call(base, 'GET', '/api/auth/me', token=device_access)
+    check('device access token works', status == 200 and body['user']['id'] == owner_id, body)
+    status, body, _ = call(base, 'POST', '/api/auth/refresh', token=device_refresh)
+    check('device refresh token works', status == 200 and body.get('access_token'), body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/token', {'device_code': device_code})
+    check('device code is used once', status == 410, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/token', {'device_code': 'not-a-real-code'})
+    check('unknown device code rejected', status == 410, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/token', {})
+    check('missing device code rejected', status == 400, body)
+
+    status, start, _ = call(base, 'POST', '/api/auth/device')
+    status, body, _ = call(base, 'POST', '/api/auth/device/deny', {'user_code': start['user_code']}, token=owner)
+    check('code declined', status == 200, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/token', {'device_code': start['device_code']})
+    check('declined device gets no tokens', status == 403 and 'access_token' not in body, body)
+    status, body, _ = call(base, 'POST', '/api/auth/device/token', {'device_code': start['device_code']})
+    check('declined code is gone', status == 410, body)
+
     # Families
     status, body, _ = call(base, 'GET', '/api/families', token=owner)
     check('no families at first', status == 200 and body['families'] == [], body)

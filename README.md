@@ -10,6 +10,8 @@ Collaborative meal planning and cooking coordination for families and groups.
 - **Kitchen Dashboard**: Countdown to the meal, countdown to each dish's start, and the family timer board
 - **Timer Board**: Shared countdowns and stopwatches with add-time, pause, reset, and overtime after zero
 - **TV Dashboard**: `/tv` shows the clock, time left until the meal, the schedule with cooks, and running timers at a size for reading across a room; mirror it to a TV with AirPlay
+- **Apple TV App**: A native tvOS app in `tv/` shows the same board and adds remote control of timers, dishes, shopping lists, and recipes. See [tv/README.md](tv/README.md)
+- **TV Sign-In by QR Code**: The Apple TV app shows a QR code and an 8-character code. A signed-in phone opens `/link`, checks the code, and approves it; the code lasts 10 minutes and works once
 - **Cook Mode**: One recipe step per screen with preset timers and screen wake lock
 - **Shopping From a Meal**: Add every ingredient on a meal's menu to the shopping list, merged by name and grouped by store section
 - **Family Groups**: Role-based access control (Owner, Organizer, Member)

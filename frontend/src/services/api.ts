@@ -217,6 +217,16 @@ class ApiClient {
     });
   }
 
+  /** Sign in the TV that is showing this code as the current user */
+  async approveDevice(userCode: string): Promise<void> {
+    await this.client.post('/api/auth/device/approve', { user_code: userCode });
+  }
+
+  /** Refuse the TV that is showing this code */
+  async denyDevice(userCode: string): Promise<void> {
+    await this.client.post('/api/auth/device/deny', { user_code: userCode });
+  }
+
   logout(): void {
     this.clearTokens();
   }

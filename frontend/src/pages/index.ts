@@ -4,6 +4,7 @@
 
 export { LoginPage } from './LoginPage';
 export { RegisterPage } from './RegisterPage';
+export { LinkPage } from './LinkPage';
 export { KitchenPage } from './kitchen/KitchenPage';
 export { PlanPage } from './plan/PlanPage';
 export { RecipeListPage, RecipeDetailPage, RecipeFormPage } from './recipes';

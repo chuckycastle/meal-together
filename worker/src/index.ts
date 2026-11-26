@@ -11,6 +11,7 @@ import { servePage } from './pages';
 import { routes } from './router';
 import type { Access, Ctx } from './router';
 import './routes/auth';
+import './routes/device';
 import './routes/families';
 import './routes/join';
 import './routes/recipes';
