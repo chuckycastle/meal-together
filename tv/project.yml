@@ -1,0 +1,74 @@
+name: MealTogetherTV
+options:
+  bundleIdPrefix: io.chuckycastle
+  deploymentTarget:
+    tvOS: "26.0"
+  createIntermediateGroups: true
+configFiles:
+  Debug: Signing.xcconfig
+  Release: Signing.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    TARGETED_DEVICE_FAMILY: "3"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  MealTogetherTV:
+    type: application
+    platform: tvOS
+    sources:
+      - path: MealTogetherTV
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.chuckycastle.mealtogether
+        PRODUCT_NAME: MealTogether
+        ASSETCATALOG_COMPILER_APPICON_NAME: App Icon & Top Shelf Image
+    info:
+      path: MealTogetherTV/Info.plist
+      properties:
+        CFBundleDisplayName: MealTogether
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UIUserInterfaceStyle: Automatic
+        ITSAppUsesNonExemptEncryption: false
+        MTAPIBaseURL: https://mealtogether.chuckycastle.io
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        UIAppFonts:
+          - ShantellSans-SemiBold.ttf
+          - ShantellSans-Bold.ttf
+          - AtkinsonHyperlegibleNext-Regular.ttf
+          - AtkinsonHyperlegibleNext-SemiBold.ttf
+          - AtkinsonHyperlegibleNext-Bold.ttf
+  MealTogetherTVTests:
+    type: bundle.unit-test
+    platform: tvOS
+    sources:
+      - path: MealTogetherTVTests
+    dependencies:
+      - target: MealTogetherTV
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.chuckycastle.mealtogether.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/MealTogether.app/MealTogether
+        BUNDLE_LOADER: $(TEST_HOST)
+schemes:
+  MealTogetherTV:
+    build:
+      targets:
+        MealTogetherTV: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - MealTogetherTVTests
+    archive:
+      config: Release

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import { supabase } from '../lib/supabase';
 import { isFeatureEnabled } from '../config/featureFlags';
+import { takeReturnPath } from '../utils/returnPath';
 import type { User, LoginRequest, RegisterRequest } from '../types';
 
 interface AuthContextValue {
@@ -120,7 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.login(credentials);
       setUser(response.user);
-      navigate('/');
+      navigate(takeReturnPath());
     } catch (error) {
       setIsLoading(false);
       throw error;
@@ -133,7 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.register(userData);
       setUser(response.user);
-      navigate('/');
+      navigate(takeReturnPath());
     } catch (error) {
       setIsLoading(false);
       throw error;

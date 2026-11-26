@@ -34,6 +34,7 @@ function lazyPage<T extends ComponentType>(load: () => Promise<{ default: T }>) 
 // Lazy load all pages for code splitting
 const LoginPage = lazyPage(() => import('./pages/LoginPage'));
 const RegisterPage = lazyPage(() => import('./pages/RegisterPage'));
+const LinkPage = lazyPage(() => import('./pages/LinkPage'));
 const KitchenPage = lazyPage(() => import('./pages/kitchen/KitchenPage'));
 const PlanPage = lazyPage(() => import('./pages/plan/PlanPage'));
 const RecipeListPage = lazyPage(() => import('./pages/recipes/RecipeListPage'));
@@ -61,6 +62,8 @@ export const AppRoutes = () => {
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        {/* Signs in a TV; sends a signed-out person to sign in and back */}
+        <Route path="/link" element={<LinkPage />} />
 
       {/* Protected routes */}
       <Route

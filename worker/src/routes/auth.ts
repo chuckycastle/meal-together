@@ -27,7 +27,7 @@ function password(value: unknown, field: string): string {
   return value;
 }
 
-async function tokens(env: Env, userId: number) {
+export async function tokens(env: Env, userId: number) {
   return {
     access_token: await signToken(env.JWT_SECRET, userId, 'access'),
     refresh_token: await signToken(env.JWT_SECRET, userId, 'refresh'),
