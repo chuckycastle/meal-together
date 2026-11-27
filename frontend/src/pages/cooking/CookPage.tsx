@@ -15,13 +15,20 @@ import { useFamily } from '../../contexts/FamilyContext';
 import { byUrgency, useKitchenTimers } from '../../hooks/useKitchenTimers';
 import { useUpdateMealItem } from '../../hooks/useMeals';
 import { useWakeLock } from '../../hooks/useWakeLock';
-import { useRecipe } from '../../hooks/useRecipes';
+import { STEP_SYNC_MS, useRecipe, useStepProgress } from '../../hooks/useRecipes';
 import { looseTimers, sortedSteps, timersForStep } from '../../lib/recipes';
-import type { Recipe } from '../../types';
+import type { CookingStep, Recipe } from '../../types';
 
-function readStoredStep(recipeId: number, stepCount: number): number {
-  const stored = Number(sessionStorage.getItem(`cook-step-${recipeId}`));
-  return Number.isInteger(stored) && stored >= 0 && stored < stepCount ? stored : 0;
+/**
+ * The step to open on: where this device left off, or else the first step
+ * the family has not marked done.
+ */
+function startingStep(recipeId: number, steps: CookingStep[]): number {
+  const raw = sessionStorage.getItem(`cook-step-${recipeId}`);
+  const stored = Number(raw);
+  if (raw !== null && Number.isInteger(stored) && stored >= 0 && stored < steps.length) return stored;
+  const firstOpen = steps.findIndex((step) => !step.done);
+  return firstOpen >= 0 ? firstOpen : Math.max(0, steps.length - 1);
 }
 
 interface CookViewProps {
@@ -35,11 +42,12 @@ const CookView = ({ recipe, familyId, mealId, itemId }: CookViewProps) => {
   const navigate = useNavigate();
   const kitchen = useKitchenTimers(familyId);
   const updateItem = useUpdateMealItem(familyId, mealId ?? 0);
+  const progress = useStepProgress(familyId, recipe.id);
   useWakeLock();
 
   const steps = sortedSteps(recipe);
   const ingredients = [...(recipe.ingredients ?? [])].sort((a, b) => a.order - b.order);
-  const [stepIndex, setStepIndex] = useState(() => readStoredStep(recipe.id, steps.length));
+  const [stepIndex, setStepIndex] = useState(() => startingStep(recipe.id, steps));
   const [gathered, setGathered] = useState<Record<number, boolean>>({});
   const [showIngredients, setShowIngredients] = useState(false);
   const [finishError, setFinishError] = useState('');
@@ -68,8 +76,19 @@ const CookView = ({ recipe, familyId, mealId, itemId }: CookViewProps) => {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [goTo, stepIndex]);
 
+  /** Mark the step on screen done for the family; other devices show it within seconds */
+  const markDone = (target: CookingStep | undefined, done = true) => {
+    if (target && !!target.done !== done) progress.setDone.mutate({ stepId: target.id, done });
+  };
+
+  const next = () => {
+    markDone(step);
+    goTo(stepIndex + 1);
+  };
+
   const finish = async () => {
     setFinishError('');
+    markDone(step);
     try {
       if (mealId && itemId) {
         await updateItem.mutateAsync({ itemId, data: { done: true } });
@@ -132,10 +151,10 @@ const CookView = ({ recipe, familyId, mealId, itemId }: CookViewProps) => {
               <button
                 type="button"
                 onClick={() => goTo(index)}
-                aria-label={`Step ${index + 1}`}
                 aria-current={index === stepIndex ? 'step' : undefined}
+                aria-label={`Step ${index + 1}${item.done ? ', done' : ''}`}
                 className={`block h-2 w-full rounded-full ${
-                  index < stepIndex ? 'bg-ink' : index === stepIndex ? 'bg-rule' : 'bg-line'
+                  index === stepIndex ? 'bg-rule' : item.done ? 'bg-ink' : 'bg-line'
                 }`}
               />
             </li>
@@ -164,9 +183,28 @@ const CookView = ({ recipe, familyId, mealId, itemId }: CookViewProps) => {
                 <span className="marker mr-2 text-4xl text-ink">{stepIndex + 1}</span>
                 of {steps.length}
               </p>
-              <p className="mt-4 max-w-[34ch] text-[clamp(1.5rem,3.4vw,2.25rem)] leading-[1.35] sm:max-w-[38ch]">
+              <p
+                className={`mt-4 max-w-[34ch] text-[clamp(1.5rem,3.4vw,2.25rem)] leading-[1.35] sm:max-w-[38ch] ${
+                  step.done ? 'text-ink-2' : ''
+                }`}
+              >
                 {step.instruction}
               </p>
+
+              <div className="mt-6 flex items-center gap-3">
+                <Tick
+                  checked={!!step.done}
+                  onChange={(checked) => markDone(step, checked)}
+                  label={`Step ${stepIndex + 1} is done`}
+                />
+                <span className="text-ink-2">
+                  {step.done
+                    ? step.done_by
+                      ? `Done, marked by ${step.done_by.first_name}`
+                      : 'Done'
+                    : 'Not done yet'}
+                </span>
+              </div>
 
               {stepTimers.length > 0 && (
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -245,7 +283,7 @@ const CookView = ({ recipe, familyId, mealId, itemId }: CookViewProps) => {
               {mealId && itemId ? 'Done, check it off' : 'Done cooking'}
             </button>
           ) : (
-            <button type="button" className="btn btn-primary min-h-14 flex-1 text-lg" onClick={() => goTo(stepIndex + 1)}>
+            <button type="button" className="btn btn-primary min-h-14 flex-1 text-lg" onClick={next}>
               Next step
               <ArrowRight size={22} aria-hidden="true" />
             </button>
@@ -261,7 +299,7 @@ export const CookPage = () => {
   const [searchParams] = useSearchParams();
   const { activeFamily } = useFamily();
   const recipeId = recipeParam ? Number.parseInt(recipeParam, 10) : undefined;
-  const { data: recipe, isLoading, isError } = useRecipe(activeFamily?.id, recipeId);
+  const { data: recipe, isLoading, isError } = useRecipe(activeFamily?.id, recipeId, { refetchInterval: STEP_SYNC_MS });
 
   const mealId = Number(searchParams.get('meal')) || null;
   const itemId = Number(searchParams.get('item')) || null;

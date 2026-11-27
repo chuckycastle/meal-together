@@ -8,6 +8,7 @@ import { HttpError, httpUrl, integer, json, list, nowIso, optionalInteger, requi
 import type { Body } from '../http';
 import { route } from '../router';
 import type { Ctx } from '../router';
+import { currentMarks, isStale } from '../steps';
 
 const MAX_MINUTES = 7 * 24 * 60;
 const MAX_TIMER_SECONDS = 48 * 60 * 60;
@@ -39,11 +40,19 @@ async function loadRecipe(env: Env, familyId: number, recipeId: number, details:
   const recipe = recipeDict(row);
   if (!details) return recipe;
 
-  const [ingredients, steps, timers] = await Promise.all([
+  const [ingredients, steps, timers, marks] = await Promise.all([
     all(env, 'SELECT * FROM ingredients WHERE recipe_id = ? ORDER BY position, id', recipeId),
     all(env, 'SELECT * FROM cooking_steps WHERE recipe_id = ? ORDER BY position, id', recipeId),
     all(env, 'SELECT * FROM recipe_timers WHERE recipe_id = ? ORDER BY id', recipeId),
+    all(
+      env,
+      `SELECT p.position, p.done_at, ${userColumns('u', 'by')} FROM recipe_step_progress p
+       LEFT JOIN users u ON u.id = p.done_by_id WHERE p.recipe_id = ?`,
+      recipeId
+    ),
   ]);
+  // Steps marked done during this cook, by place in the ordered list
+  const done = currentMarks(marks as Array<Row & { position: number; done_at: string }>, steps.length, new Date());
 
   recipe.ingredients = ingredients.map((item) => ({
     id: item.id,
@@ -54,12 +63,15 @@ async function loadRecipe(env: Env, familyId: number, recipeId: number, details:
     created_at: item.created_at,
     updated_at: item.updated_at,
   }));
-  recipe.steps = steps.map((item) => ({
+  recipe.steps = steps.map((item, index) => ({
     id: item.id,
     recipe_id: item.recipe_id,
     instruction: item.instruction,
     order: item.position,
     estimated_time: item.estimated_time,
+    done: done.has(index),
+    done_at: done.get(index)?.done_at ?? null,
+    done_by: done.has(index) ? userDict(done.get(index)!, 'by') : null,
     created_at: item.created_at,
     updated_at: item.updated_at,
   }));
@@ -289,6 +301,61 @@ route('POST', '/api/families/:familyId/recipes/:recipeId/assign', 'member', asyn
     message: 'Recipe assigned successfully',
     recipe: await loadRecipe(ctx.env, familyId, recipeId, false),
   });
+});
+
+/** The ordered step ids of a recipe in this family */
+async function stepIds(env: Env, familyId: number, recipeId: number): Promise<number[]> {
+  const recipe = await first(env, 'SELECT id FROM recipes WHERE id = ? AND family_id = ?', recipeId, familyId);
+  if (!recipe) throw new HttpError(404, 'Recipe not found');
+  const steps = await all(env, 'SELECT id FROM cooking_steps WHERE recipe_id = ? ORDER BY position, id', recipeId);
+  return steps.map((step) => step.id as number);
+}
+
+// Mark a step done or not done for everyone in the family
+route('PUT', '/api/families/:familyId/recipes/:recipeId/steps/:stepId', 'member', async (ctx) => {
+  const { familyId, recipeId, stepId } = ctx.params;
+  const { env } = ctx;
+  if (typeof ctx.body.done !== 'boolean') throw new HttpError(400, 'done must be true or false');
+
+  const ids = await stepIds(env, familyId, recipeId);
+  const position = ids.indexOf(stepId);
+  if (position < 0) throw new HttpError(404, 'Step not found');
+
+  const now = new Date();
+  const latest = await first(env, 'SELECT MAX(done_at) AS latest FROM recipe_step_progress WHERE recipe_id = ?', recipeId);
+  const statements: D1PreparedStatement[] = [];
+  if (isStale(latest?.latest, now)) {
+    // The last cook is over; this mark starts a new one
+    statements.push(stmt(env, 'DELETE FROM recipe_step_progress WHERE recipe_id = ?', recipeId));
+  } else {
+    statements.push(
+      stmt(env, 'DELETE FROM recipe_step_progress WHERE recipe_id = ? AND position >= ?', recipeId, ids.length)
+    );
+  }
+  statements.push(
+    ctx.body.done
+      ? stmt(
+          env,
+          `INSERT INTO recipe_step_progress (recipe_id, position, done_by_id, done_at) VALUES (?, ?, ?, ?)
+           ON CONFLICT (recipe_id, position) DO NOTHING`,
+          recipeId,
+          position,
+          ctx.userId,
+          now.toISOString()
+        )
+      : stmt(env, 'DELETE FROM recipe_step_progress WHERE recipe_id = ? AND position = ?', recipeId, position)
+  );
+  await batch(env, statements);
+
+  return json({ recipe: await loadRecipe(env, familyId, recipeId, true) });
+});
+
+// Open every step again, to cook the recipe from the start
+route('POST', '/api/families/:familyId/recipes/:recipeId/steps/reset', 'member', async (ctx) => {
+  const { familyId, recipeId } = ctx.params;
+  await stepIds(ctx.env, familyId, recipeId);
+  await run(ctx.env, 'DELETE FROM recipe_step_progress WHERE recipe_id = ?', recipeId);
+  return json({ recipe: await loadRecipe(ctx.env, familyId, recipeId, true) });
 });
 
 route('POST', '/api/families/:familyId/recipes/import', 'member', async () => {

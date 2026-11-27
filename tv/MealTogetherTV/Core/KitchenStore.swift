@@ -301,6 +301,19 @@ final class KitchenStore {
         return response.recipe
     }
 
+    /// Mark a step done or not done for the whole family. Returns the recipe with everyone's progress.
+    func setStep(_ stepID: Int, done: Bool, recipeID: Int) async throws -> Recipe {
+        let response: RecipeResponse = try await api.request(
+            "PUT", "\(base)/recipes/\(recipeID)/steps/\(stepID)", body: ["done": done])
+        return response.recipe
+    }
+
+    /// Open every step again, to cook the recipe from the start
+    func resetSteps(recipeID: Int) async throws -> Recipe {
+        let response: RecipeResponse = try await api.request("POST", "\(base)/recipes/\(recipeID)/steps/reset")
+        return response.recipe
+    }
+
     private func attempt(_ work: () async throws -> Void) async {
         do {
             try await work()

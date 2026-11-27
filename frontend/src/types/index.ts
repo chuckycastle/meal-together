@@ -163,6 +163,10 @@ export interface CookingStep {
   instruction: string;
   order: number;
   estimated_time?: number; // minutes
+  /** Marked done during this cook, shared by the family */
+  done?: boolean;
+  done_at?: string | null;
+  done_by?: User | null;
   created_at: string;
   updated_at: string;
 }

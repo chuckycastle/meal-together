@@ -59,6 +59,19 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/MealTogether.app/MealTogether
         BUNDLE_LOADER: $(TEST_HOST)
+  MealTogetherTVUITests:
+    type: bundle.ui-testing
+    platform: tvOS
+    sources:
+      - path: MealTogetherTVUITests
+    dependencies:
+      - target: MealTogetherTV
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.chuckycastle.mealtogether.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_DEFAULT_ACTOR_ISOLATION: nonisolated
+        TEST_TARGET_NAME: MealTogetherTV
 schemes:
   MealTogetherTV:
     build:
@@ -70,5 +83,6 @@ schemes:
       config: Debug
       targets:
         - MealTogetherTVTests
+        - MealTogetherTVUITests
     archive:
       config: Release

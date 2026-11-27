@@ -221,6 +221,39 @@ def main():
     rid2 = body['recipe']['id']
     status, body, _ = call(base, 'GET', f + '/recipes', token=owner)
     check('list recipes', status == 200 and body['pagination']['total'] == 2 and 'ingredients' not in body['recipes'][0], body)
+    # Step progress is shared by the family
+    status, body, _ = call(base, 'GET', f + f'/recipes/{rid}', token=owner)
+    steps = body['recipe']['steps']
+    check('steps start open', status == 200 and len(steps) >= 2 and not any(s['done'] for s in steps)
+          and steps[0]['done_by'] is None, body)
+    sr = f + f'/recipes/{rid}/steps'
+    status, body, _ = call(base, 'PUT', f"{sr}/{steps[1]['id']}", {'done': True}, token=other)
+    check('member marks a step done', status == 200 and [s['done'] for s in body['recipe']['steps']][:2] == [False, True]
+          and body['recipe']['steps'][1]['done_by']['id'] == other_id and body['recipe']['steps'][1]['done_at'], body)
+    status, body, _ = call(base, 'GET', f + f'/recipes/{rid}', token=owner)
+    check('another member sees the step done', body['recipe']['steps'][1]['done'] is True
+          and body['recipe']['steps'][1]['done_by']['id'] == other_id, body)
+    status, body, _ = call(base, 'PUT', f"{sr}/{steps[1]['id']}", {'done': True}, token=owner)
+    check('marking a done step again keeps who did it', status == 200
+          and body['recipe']['steps'][1]['done_by']['id'] == other_id, body)
+    status, body, _ = call(base, 'PUT', f"{sr}/{steps[0]['id']}", {'done': 'yes'}, token=owner)
+    check('done must be a boolean', status == 400, body)
+    status, body, _ = call(base, 'PUT', f'{sr}/999999999', {'done': True}, token=owner)
+    check('unknown step rejected', status == 404, body)
+    status, body, _ = call(base, 'PUT', f"{sr}/{steps[0]['id']}", {'done': True}, token=outsider)
+    check('outsider cannot mark steps', status == 404, body)
+    status, body, _ = call(base, 'PUT', f"{sr}/{steps[1]['id']}", {'done': False}, token=owner)
+    check('step marked not done', status == 200 and not any(s['done'] for s in body['recipe']['steps']), body)
+    for step in steps[:2]:
+        call(base, 'PUT', f"{sr}/{step['id']}", {'done': True}, token=owner)
+    status, body, _ = call(base, 'PUT', f + f'/recipes/{rid}', {'description': 'Saved again.',
+                           'steps': [{'instruction': s['instruction']} for s in steps]}, token=owner)
+    check('saving the recipe keeps step progress', status == 200
+          and [s['done'] for s in body['recipe']['steps']][:2] == [True, True], body)
+    status, body, _ = call(base, 'POST', f'{sr}/reset', token=other)
+    check('start over opens every step', status == 200 and not any(s['done'] for s in body['recipe']['steps']), body)
+    call(base, 'PUT', f"{sr}/{body['recipe']['steps'][1]['id']}", {'done': True}, token=owner)
+
     status, body, _ = call(base, 'PUT', f + f'/recipes/{rid}', {'name': 'Better pie', 'steps': [{'instruction': 'Only step.'}]}, token=owner)
     check('update recipe', status == 200 and body['recipe']['name'] == 'Better pie'
           and len(body['recipe']['steps']) == 1 and len(body['recipe']['ingredients']) == 2, body)
