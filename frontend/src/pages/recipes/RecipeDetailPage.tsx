@@ -5,14 +5,14 @@
 
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ChefHat, ExternalLink, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChefHat, ExternalLink, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { Layout } from '../../components/layout';
-import { Notice, Spinner } from '../../components/kit';
+import { Notice, Spinner, Tick } from '../../components/kit';
 import { StepTimer } from '../../components/cook/StepTimer';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useKitchenTimers } from '../../hooks/useKitchenTimers';
-import { useAssignRecipe, useDeleteRecipe, useRecipe } from '../../hooks/useRecipes';
+import { STEP_SYNC_MS, useAssignRecipe, useDeleteRecipe, useRecipe, useStepProgress } from '../../hooks/useRecipes';
 import { looseTimers, safeHttpUrl, sortedSteps, sourceLabel, timersForStep } from '../../lib/recipes';
 import { durationLabel } from '../../lib/time';
 
@@ -22,7 +22,8 @@ export const RecipeDetailPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { activeFamily } = useFamily();
-  const { data: recipe, isLoading, isError } = useRecipe(activeFamily?.id, recipeId);
+  const { data: recipe, isLoading, isError } = useRecipe(activeFamily?.id, recipeId, { refetchInterval: STEP_SYNC_MS });
+  const progress = useStepProgress(activeFamily?.id ?? 0, recipeId ?? 0);
   const deleteRecipe = useDeleteRecipe(activeFamily?.id ?? 0);
   const assignRecipe = useAssignRecipe(activeFamily?.id ?? 0, recipeId ?? 0);
   const kitchen = useKitchenTimers(activeFamily?.id);
@@ -183,9 +184,22 @@ export const RecipeDetailPage = () => {
         </section>
 
         <section aria-labelledby="steps-heading">
-          <h2 id="steps-heading" className="marker text-2xl">
-            What to do
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="steps-heading" className="marker text-2xl">
+              What to do
+            </h2>
+            {steps.some((step) => step.done) && (
+              <button
+                type="button"
+                className="btn btn-quiet btn-sm"
+                onClick={() => progress.reset.mutate()}
+                disabled={progress.reset.isPending}
+              >
+                <RotateCcw size={16} aria-hidden="true" />
+                Start over
+              </button>
+            )}
+          </div>
           {steps.length === 0 ? (
             <p className="mt-2 text-ink-2">No steps listed.</p>
           ) : (
@@ -193,12 +207,17 @@ export const RecipeDetailPage = () => {
               {steps.map((step, index) => {
                 const timers = timersForStep(recipe, index);
                 return (
-                  <li key={step.id} className="grid grid-cols-[2.5rem_1fr] gap-x-3">
+                  <li key={step.id} className="grid grid-cols-[2.5rem_1fr_auto] gap-x-3">
                     <span className="marker text-3xl leading-none text-ink-3" aria-hidden="true">
                       {index + 1}
                     </span>
                     <div>
-                      <p className="max-w-[65ch] text-lg leading-relaxed">{step.instruction}</p>
+                      <p className={`max-w-[65ch] text-lg leading-relaxed ${step.done ? 'struck text-ink-2' : ''}`}>
+                        {step.instruction}
+                      </p>
+                      {step.done && step.done_by && (
+                        <p className="mt-1 text-sm text-ink-2">Marked done by {step.done_by.first_name}</p>
+                      )}
                       {timers.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {timers.map((timer) => (
@@ -207,6 +226,11 @@ export const RecipeDetailPage = () => {
                         </div>
                       )}
                     </div>
+                    <Tick
+                      checked={!!step.done}
+                      onChange={(done) => progress.setDone.mutate({ stepId: step.id, done })}
+                      label={`Step ${index + 1} is done`}
+                    />
                   </li>
                 );
               })}

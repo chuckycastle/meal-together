@@ -204,6 +204,25 @@ import Testing
         #expect(image.width >= 21)
     }
 
+    @Test func decodesSharedStepProgress() throws {
+        let json = """
+        {"recipe":{"id":4,"name":"Turkey","description":null,"prep_time":30,"cook_time":210,"servings":12,
+          "assigned_to":null,"ingredients":[],"timers":[],
+          "steps":[
+            {"id":1,"recipe_id":4,"instruction":"Heat the oven.","order":0,"estimated_time":10,"done":true,
+             "done_at":"2026-11-26T18:00:00.000Z",
+             "done_by":{"id":2,"email":"s@example.com","first_name":"Sam","last_name":"Okafor"}},
+            {"id":2,"recipe_id":4,"instruction":"Roast.","order":1,"estimated_time":null,"done":false,
+             "done_at":null,"done_by":null},
+            {"id":3,"recipe_id":4,"instruction":"Rest.","order":2,"estimated_time":30}
+          ]}}
+        """
+        let steps = try #require(try APIClient.makeDecoder().decode(RecipeResponse.self, from: Data(json.utf8)).recipe.steps)
+        #expect(steps.map(\.isDone) == [true, false, false])
+        #expect(steps[0].doneBy?.firstName == "Sam")
+        #expect(steps[2].done == nil)
+    }
+
     @Test func guessesMarkerColorsFromNames() {
         #expect(MarkerColor.guess(for: "Pumpkin pie") == .red)
         #expect(MarkerColor.guess(for: "Roast turkey") == .brown)

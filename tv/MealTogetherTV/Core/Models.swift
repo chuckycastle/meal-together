@@ -153,6 +153,11 @@ nonisolated struct CookingStep: Codable, Identifiable, Hashable, Sendable {
     let instruction: String
     /// Minutes
     let estimatedTime: Int?
+    /// Marked done during this cook, shared by the family. Missing from older servers.
+    var done: Bool?
+    let doneBy: User?
+
+    var isDone: Bool { done ?? false }
 }
 
 nonisolated struct Recipe: Codable, Identifiable, Hashable, Sendable {
@@ -164,7 +169,7 @@ nonisolated struct Recipe: Codable, Identifiable, Hashable, Sendable {
     let servings: Int?
     let assignedTo: User?
     let ingredients: [Ingredient]?
-    let steps: [CookingStep]?
+    var steps: [CookingStep]?
     let timers: [PresetTimer]?
 
     var totalMinutes: Int { (prepTime ?? 0) + (cookTime ?? 0) }

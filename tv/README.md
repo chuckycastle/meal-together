@@ -9,7 +9,7 @@ A tvOS app that shows the kitchen board on an Apple TV and controls it with the 
 - **New timer**: pick a length from 1 minute to 4 hours, start a stopwatch, or start a timer already on the board. A name is optional.
 - **Dish**: click a dish to mark it done, choose its cook, start its recipe's timers, or open the recipe.
 - **Shopping**: items by category. Click an item to check it off for the family.
-- **Recipes**: ingredients, steps, and preset timers. Clicking an ingredient or step ticks it off on the TV only.
+- **Recipes**: ingredients, steps, and preset timers. Clicking a step marks it done for the whole family; steps marked on other devices show here within 5 seconds. **Start the steps over** opens them all again. Ingredient ticks stay on the TV.
 - **Settings**: family, the meal shown on the dashboard, dark or light colors, timer sound, and sign-out.
 
 ## Requirements
@@ -69,6 +69,16 @@ Start the Worker with `wrangler dev`, then launch a Debug simulator build with t
 
 Pass them through `simctl` with a `SIMCTL_CHILD_` prefix.
 
+### Remote-driven test
+
+`MealTogetherTVUITests` presses Siri Remote buttons to mark a recipe step done and checks that the mark holds after a refresh. It is skipped unless a local server and a test account are given:
+
+```bash
+TEST_RUNNER_MT_API_BASE=http://localhost:8787 TEST_RUNNER_MT_EMAIL=<email> TEST_RUNNER_MT_PASSWORD=<password> \
+TEST_RUNNER_MT_RECIPE=<recipe id> xcodebuild -project MealTogetherTV.xcodeproj -scheme MealTogetherTV \
+  -destination "platform=tvOS Simulator,name=Apple TV 4K (3rd generation)" test -only-testing:MealTogetherTVUITests
+```
+
 ## Layout
 
 ```
@@ -81,7 +91,8 @@ tv/
 │   ├── Design/                 # Palette, fonts, focus styles, shared views
 │   ├── Features/               # One folder per screen
 │   └── Resources/Fonts/        # Shantell Sans and Atkinson Hyperlegible Next (SIL OFL 1.1)
-└── MealTogetherTVTests/        # Timer math, schedule grouping, time labels, decoding
+├── MealTogetherTVTests/        # Timer math, schedule grouping, time labels, decoding
+└── MealTogetherTVUITests/      # Remote-driven test against a local server
 ```
 
 ## Sign-in

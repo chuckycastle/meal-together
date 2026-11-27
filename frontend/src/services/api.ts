@@ -297,6 +297,23 @@ class ApiClient {
     return response.data.recipe;
   }
 
+  /** Mark a step done or not done for everyone in the family */
+  async setStepDone(familyId: number, recipeId: number, stepId: number, done: boolean): Promise<Recipe> {
+    const response = await this.client.put<{ recipe: Recipe }>(
+      `/api/families/${familyId}/recipes/${recipeId}/steps/${stepId}`,
+      { done }
+    );
+    return response.data.recipe;
+  }
+
+  /** Open every step again, to cook the recipe from the start */
+  async resetSteps(familyId: number, recipeId: number): Promise<Recipe> {
+    const response = await this.client.post<{ recipe: Recipe }>(
+      `/api/families/${familyId}/recipes/${recipeId}/steps/reset`
+    );
+    return response.data.recipe;
+  }
+
   async createRecipe(familyId: number, data: CreateRecipeRequest): Promise<Recipe> {
     const response = await this.client.post<{ recipe: Recipe }>(
       `/api/families/${familyId}/recipes`,

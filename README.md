@@ -13,6 +13,7 @@ Collaborative meal planning and cooking coordination for families and groups.
 - **Apple TV App**: A native tvOS app in `tv/` shows the same board and adds remote control of timers, dishes, shopping lists, and recipes. See [tv/README.md](tv/README.md)
 - **TV Sign-In by QR Code**: The Apple TV app shows a QR code and an 8-character code. A signed-in phone opens `/link`, checks the code, and approves it; the code lasts 10 minutes and works once
 - **Cook Mode**: One recipe step per screen with preset timers and screen wake lock
+- **Shared Step Progress**: A recipe step marked done on one device shows as done on every device in the family within 5 seconds, with who marked it. Progress clears with Start over, or when no step has been marked for 24 hours
 - **Shopping From a Meal**: Add every ingredient on a meal's menu to the shopping list, merged by name and grouped by store section
 - **Family Groups**: Role-based access control (Owner, Organizer, Member)
 - **Join Requests**: A new account asks to join a family that accepts requests; an owner or organizer approves or declines
